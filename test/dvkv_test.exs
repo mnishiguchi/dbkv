@@ -7,153 +7,158 @@ defmodule DBKVTest do
   require Ex2ms
 
   setup do
-    table_name = :file_store_test
+    table_name = :dbkv_test
     :ok = create_table(name: table_name, data_dir: "tmp")
 
     on_exit(fn ->
-      File.rm("tmp/file_store_test.db")
+      File.rm("tmp/dbkv_test.db")
     end)
 
     %{table_name: table_name}
   end
 
-  test "basic use", %{table_name: table_name} do
+  test "basic use", %{table_name: dbkv} do
     assert %{
              file_size: _,
-             filename: 'tmp/file_store_test.db',
+             filename: 'tmp/dbkv_test.db',
              keypos: _,
              size: _,
              type: :set
-           } = describe_table(table_name)
+           } = describe_table(dbkv)
 
-    assert exist?(table_name)
+    assert exist?(dbkv)
 
     # Insert
-    :ok = put(table_name, :word, "Hi")
-    assert "Hi" == get(table_name, :word)
-    assert 1 == size(table_name)
+    :ok = put(dbkv, :word, "Hi")
+    assert "Hi" == get(dbkv, :word)
+    assert 1 == size(dbkv)
 
     # Upsert
-    :ok = put(table_name, :word, "Hello")
-    assert "Hello" == get(table_name, :word)
-    assert 1 == size(table_name)
+    :ok = put(dbkv, :word, "Hello")
+    assert "Hello" == get(dbkv, :word)
+    assert 1 == size(dbkv)
 
     # Insert new
-    {:error, :exists} = put_new(table_name, :word, "World")
-    assert "Hello" == get(table_name, :word)
-    :ok = put_new(table_name, :temp, 88)
-    assert 88 == get(table_name, :temp)
-    assert 2 == size(table_name)
+    {:error, :exists} = put_new(dbkv, :word, "World")
+    assert "Hello" == get(dbkv, :word)
+    :ok = put_new(dbkv, :temp, 88)
+    assert 88 == get(dbkv, :temp)
+    assert 2 == size(dbkv)
 
     # Update
-    :ok = update(table_name, :word, "default", &(&1 <> "!!!"))
-    assert "Hello!!!" == get(table_name, :word)
-    assert 2 == size(table_name)
+    :ok = update(dbkv, :word, "default", &(&1 <> "!!!"))
+    assert "Hello!!!" == get(dbkv, :word)
+    assert 2 == size(dbkv)
 
-    :ok = update(table_name, :lang, "Elixir", &(&1 <> "!!!"))
-    assert "Elixir" == get(table_name, :lang)
-    assert 3 == size(table_name)
+    :ok = update(dbkv, :lang, "Elixir", &(&1 <> "!!!"))
+    assert "Elixir" == get(dbkv, :lang)
+    assert 3 == size(dbkv)
 
     # Delete
-    :ok = delete(table_name, :word)
-    assert is_nil(get(table_name, :word))
-    assert 2 == size(table_name)
+    :ok = delete(dbkv, :word)
+    assert is_nil(get(dbkv, :word))
+    assert 2 == size(dbkv)
 
     # Data persistence across restart
-    :ok = delete_table(table_name)
-    refute exist?(table_name)
-    :ok = create_table(name: table_name, data_dir: "tmp")
-    assert "Elixir" == get(table_name, :lang)
+    :ok = delete_table(dbkv)
+    refute exist?(dbkv)
+    :ok = create_table(name: dbkv, data_dir: "tmp")
+    assert "Elixir" == get(dbkv, :lang)
   end
 
-  test "select_by_match_spec", %{table_name: table_name} do
-    :ok = put_new(table_name, 0, "a")
-    :ok = put_new(table_name, 1, "b")
-    :ok = put_new(table_name, 2, "c")
-    :ok = put_new(table_name, 3, "d")
-    :ok = put_new(table_name, 4, "e")
+  test "select_by_match_spec", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
     match_spec =
       Ex2ms.fun do
         {k, v} = kv when 1 <= k and k <= 3 -> kv
       end
 
-    assert [{1, "b"}, {2, "c"}, {3, "d"}] == select_by_match_spec(table_name, match_spec)
+    assert [{1, "b"}, {2, "c"}, {3, "d"}] == select_by_match_spec(dbkv, match_spec)
   end
 
-  test "select_by_key_range", %{table_name: table_name} do
-    :ok = put_new(table_name, 0, "a")
-    :ok = put_new(table_name, 1, "b")
-    :ok = put_new(table_name, 2, "c")
-    :ok = put_new(table_name, 3, "d")
-    :ok = put_new(table_name, 4, "e")
+  test "select_by_key_range", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
-    assert [{1, "b"}, {2, "c"}, {3, "d"}] == select_by_key_range(table_name, 1, 3)
-    assert [{1, "b"}, {2, "c"}] == select_by_key_range(table_name, 1, 3, max_key_inclusive: false)
-    assert [] == select_by_key_range(table_name, 10, 20)
+    assert [{1, "b"}, {2, "c"}, {3, "d"}] == select_by_key_range(dbkv, 1, 3)
+    assert [{1, "b"}, {2, "c"}] == select_by_key_range(dbkv, 1, 3, max_key_inclusive: false)
+    assert [] == select_by_key_range(dbkv, 10, 20)
   end
 
-  test "select_by_min_key", %{table_name: table_name} do
-    :ok = put_new(table_name, 0, "a")
-    :ok = put_new(table_name, 1, "b")
-    :ok = put_new(table_name, 2, "c")
-    :ok = put_new(table_name, 3, "d")
-    :ok = put_new(table_name, 4, "e")
+  test "select_by_min_key", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
-    assert [{2, "c"}, {3, "d"}, {4, "e"}] == select_by_min_key(table_name, 2)
-    assert [] == select_by_min_key(table_name, 10)
+    assert [{2, "c"}, {3, "d"}, {4, "e"}] == select_by_min_key(dbkv, 2)
+    assert [] == select_by_min_key(dbkv, 10)
   end
 
-  test "select_by_max_key", %{table_name: table_name} do
-    :ok = put_new(table_name, 0, "a")
-    :ok = put_new(table_name, 1, "b")
-    :ok = put_new(table_name, 2, "c")
-    :ok = put_new(table_name, 3, "d")
-    :ok = put_new(table_name, 4, "e")
+  test "select_by_max_key", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
-    assert [{0, "a"}, {1, "b"}, {2, "c"}] == select_by_max_key(table_name, 2)
-    assert [{0, "a"}, {1, "b"}] == select_by_max_key(table_name, 2, max_key_inclusive: false)
-    assert [] == select_by_max_key(table_name, -1)
+    assert [{0, "a"}, {1, "b"}, {2, "c"}] == select_by_max_key(dbkv, 2)
+    assert [{0, "a"}, {1, "b"}] == select_by_max_key(dbkv, 2, max_key_inclusive: false)
+    assert [] == select_by_max_key(dbkv, -1)
   end
 
-  test "select_by_value_range", %{table_name: table_name} do
-    :ok = put_new(table_name, 0, "a")
-    :ok = put_new(table_name, 1, "b")
-    :ok = put_new(table_name, 2, "c")
-    :ok = put_new(table_name, 3, "d")
-    :ok = put_new(table_name, 4, "e")
+  test "select_by_value_range", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
-    assert [{1, "b"}, {2, "c"}, {3, "d"}] == select_by_value_range(table_name, "b", "d")
+    assert [{1, "b"}, {2, "c"}, {3, "d"}] == select_by_value_range(dbkv, "b", "d")
 
     assert [{1, "b"}, {2, "c"}] ==
-             select_by_value_range(table_name, "b", "d", max_value_inclusive: false)
+             select_by_value_range(dbkv, "b", "d", max_value_inclusive: false)
 
-    assert [] == select_by_value_range(table_name, "v", "z")
+    assert [] == select_by_value_range(dbkv, "v", "z")
   end
 
-  test "select_by_min_value", %{table_name: table_name} do
-    :ok = put_new(table_name, 0, "a")
-    :ok = put_new(table_name, 1, "b")
-    :ok = put_new(table_name, 2, "c")
-    :ok = put_new(table_name, 3, "d")
-    :ok = put_new(table_name, 4, "e")
+  test "select_by_min_value", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
-    assert [{2, "c"}, {3, "d"}, {4, "e"}] == select_by_min_value(table_name, "c")
-    assert [] == select_by_min_value(table_name, "v")
+    assert [{2, "c"}, {3, "d"}, {4, "e"}] == select_by_min_value(dbkv, "c")
+    assert [] == select_by_min_value(dbkv, "v")
   end
 
-  test "select_by_max_value", %{table_name: table_name} do
-    :ok = put_new(table_name, 0, "a")
-    :ok = put_new(table_name, 1, "b")
-    :ok = put_new(table_name, 2, "c")
-    :ok = put_new(table_name, 3, "d")
-    :ok = put_new(table_name, 4, "e")
+  test "select_by_max_value", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
-    assert [{0, "a"}, {1, "b"}, {2, "c"}] == select_by_max_value(table_name, "c")
+    assert [{0, "a"}, {1, "b"}, {2, "c"}] == select_by_max_value(dbkv, "c")
 
     assert [{0, "a"}, {1, "b"}] ==
-             select_by_max_value(table_name, "c", max_value_inclusive: false)
+             select_by_max_value(dbkv, "c", max_value_inclusive: false)
 
-    assert [] == select_by_max_value(table_name, "#")
+    assert [] == select_by_max_value(dbkv, "#")
+  end
+
+  test "when table not exists" do
+    assert_raise ArgumentError, fn -> get(:non_existent_table, 0) end
+    assert_raise ArgumentError, fn -> put(:non_existent_table, 0, 0) end
   end
 end
