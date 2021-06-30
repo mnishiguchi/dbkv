@@ -1,4 +1,4 @@
-defmodule DubDB.MatchSpec do
+defmodule DBKV.MatchSpec do
   @moduledoc false
 
   require Ex2ms

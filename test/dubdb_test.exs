@@ -1,8 +1,8 @@
-defmodule DubDBTest do
+defmodule DBKVTest do
   # We cannot run this test async because the database file is global.
   use ExUnit.Case
 
-  import DubDB
+  import DBKV
 
   require Ex2ms
 

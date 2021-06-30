@@ -1,10 +1,10 @@
-defmodule DubDB do
+defmodule DBKV do
   @moduledoc """
   A disk-based key-value store built on top of [`:dets`](https://erlang.org/doc/man/dets.html).
   Inspired by [CubDB](https://github.com/lucaong/cubdb)'s intuitive API.
   """
 
-  alias DubDB.MatchSpec
+  alias DBKV.MatchSpec
 
   #
   # Table commands

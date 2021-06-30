@@ -1,12 +1,12 @@
-defmodule DubDB.MixProject do
+defmodule DBKV.MixProject do
   use Mix.Project
 
   @version "0.1.0"
-  @source_url "https://github.com/mnishiguchi/dubdb"
+  @source_url "https://github.com/mnishiguchi/dbkv"
 
   def project do
     [
-      app: :dubdb,
+      app: :dbkv,
       version: @version,
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
