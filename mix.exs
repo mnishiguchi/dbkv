@@ -1,13 +1,18 @@
 defmodule DubDB.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+  @source_url "https://github.com/mnishiguchi/dubdb"
+
   def project do
     [
       app: :dubdb,
-      version: "0.1.0",
+      version: @version,
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      docs: docs(),
+      package: package()
     ]
   end
 
@@ -26,6 +31,34 @@ defmodule DubDB.MixProject do
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.24", only: [:dev], runtime: false},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false}
+    ]
+  end
+
+  defp package do
+    %{
+      description: "A disk-based embedded key-value store built on top of `:dets`",
+      files: [
+        "lib",
+        "test",
+        "mix.exs",
+        "README.md",
+        "LICENSE",
+        "CHANGELOG.md"
+      ],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => @source_url
+      }
+    }
+  end
+
+  defp docs do
+    [
+      extras: ["README.md", "CHANGELOG.md"],
+      main: "readme",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      skip_undefined_reference_warnings_on: ["CHANGELOG.md"]
     ]
   end
 end

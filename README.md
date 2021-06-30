@@ -1,5 +1,10 @@
 # DubDB
 
+[![Hex version](https://img.shields.io/hexpm/v/dubdb.svg "Hex version")](https://hex.pm/packages/dubdb)
+[![API docs](https://img.shields.io/hexpm/v/dubdb.svg?label=docs "API docs")](https://hexdocs.pm/dubdb)
+[![CI](https://github.com/mnishiguchi/dubdb/actions/workflows/ci.yml/badge.svg)](https://github.com/mnishiguchi/dubdb/actions/workflows/ci.yml)
+[![Hex](https://github.com/mnishiguchi/dubdb/actions/workflows/hex.yml/badge.svg)](https://github.com/mnishiguchi/dubdb/actions/workflows/hex.yml)
+
 `DubDB` is a disk-based embedded key-value store built on top of [`:dets`](https://erlang.org/doc/man/dets.html). Inspired by [CubDB](https://github.com/lucaong/cubdb)'s intuitive API.
 
 ## Usage
