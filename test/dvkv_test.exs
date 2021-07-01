@@ -29,7 +29,7 @@ defmodule DBKVTest do
              type: :set
            } = DBKV.info(dbkv)
 
-    assert DBKV.exist?(dbkv)
+    assert DBKV.open?(dbkv)
 
     # Insert
     :ok = DBKV.put(dbkv, :word, "Hi")
@@ -64,7 +64,7 @@ defmodule DBKVTest do
 
     # Data persistence across restart
     :ok = DBKV.close(dbkv)
-    refute DBKV.exist?(dbkv)
+    refute DBKV.open?(dbkv)
     DBKV.open(name: dbkv, data_dir: "tmp")
     assert "Elixir" == DBKV.get(dbkv, :lang)
   end

@@ -51,10 +51,13 @@ defmodule DBKV do
   @deprecated "Use info/1 instead"
   def describe_table(table_name), do: info(table_name)
 
-  @spec exist?(atom) :: boolean
-  def exist?(table_name) when is_atom(table_name) do
+  @spec open?(atom) :: boolean
+  def open?(table_name) when is_atom(table_name) do
     table_name in :dets.all()
   end
+
+  @deprecated "Use open?/1 instead"
+  def exist?(table_name), do: open?(table_name)
 
   @spec size(atom) :: integer | :undefined
   def size(table_name) when is_atom(table_name) do

@@ -15,7 +15,7 @@
 iex> {:ok, t} = DBKV.open(name: :my_table, data_dir: "tmp")
 {:ok, :my_table}
 
-iex> DBKV.exist?(t)
+iex> DBKV.open?(t)
 true
 ```
 
@@ -77,7 +77,7 @@ nil
 iex> DBKV.close(t)
 :ok
 
-iex> DBKV.exist?(t)
+iex> DBKV.open?(t)
 false
 
 iex> DBKV.open(name: t, data_dir: "tmp")
