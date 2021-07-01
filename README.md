@@ -32,7 +32,7 @@ iex> DBKV.get(t, "greeting")
 ### Insert a key-value pair if it does not exist
 
 ```elixir
-iex> c
+iex> DBKV.put_new(t, "greeting", "Hello")
 {:error, :exists}
 
 iex> DBKV.get(t, "greeting")
