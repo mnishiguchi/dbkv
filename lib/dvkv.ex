@@ -4,10 +4,11 @@ defmodule DBKV do
   Inspired by [CubDB](https://github.com/lucaong/cubdb)'s intuitive API.
   """
 
-  alias DBKV.MatchSpec
+  alias DBKV.BooleanMatchSpec
+  alias DBKV.FinderMatchSpec
 
   #
-  # Table commands
+  # Table
   #
 
   @spec create_table(keyword) :: :ok | {:error, any}
@@ -53,7 +54,7 @@ defmodule DBKV do
   end
 
   #
-  # CRUD commands
+  # CRUD
   #
 
   @spec has_key?(atom, any) :: boolean
@@ -104,23 +105,9 @@ defmodule DBKV do
     :dets.delete_all_objects(table_name)
   end
 
-  @spec all(atom) :: list
-  def all(table_name) do
-    match_spec = MatchSpec.all()
-    :dets.select(table_name, match_spec)
-  end
-
-  @spec keys(atom) :: list
-  def keys(table_name) do
-    match_spec = MatchSpec.keys()
-    :dets.select(table_name, match_spec)
-  end
-
-  @spec values(atom) :: list
-  def values(table_name) do
-    match_spec = MatchSpec.values()
-    :dets.select(table_name, match_spec)
-  end
+  #
+  # Counter
+  #
 
   @spec increment(atom, any, number) :: number
   def increment(table_name, key, by) do
@@ -132,6 +119,28 @@ defmodule DBKV do
     :dets.update_counter(table_name, key, -by)
   end
 
+  #
+  # Select
+  #
+
+  @spec all(atom) :: list
+  def all(table_name) do
+    match_spec = FinderMatchSpec.all()
+    select_by_match_spec(table_name, match_spec)
+  end
+
+  @spec keys(atom) :: list
+  def keys(table_name) do
+    match_spec = FinderMatchSpec.keys()
+    select_by_match_spec(table_name, match_spec)
+  end
+
+  @spec values(atom) :: list
+  def values(table_name) do
+    match_spec = FinderMatchSpec.values()
+    select_by_match_spec(table_name, match_spec)
+  end
+
   @spec select_by_match_spec(atom, list) :: list
   def select_by_match_spec(table_name, match_spec) do
     :dets.select(table_name, match_spec)
@@ -139,37 +148,82 @@ defmodule DBKV do
 
   @spec select_by_key_range(atom, any, any, list) :: list
   def select_by_key_range(table_name, min_key, max_key, opts \\ []) do
-    match_spec = MatchSpec.key_range(min_key, max_key, opts)
-    :dets.select(table_name, match_spec)
+    match_spec = FinderMatchSpec.key_range(min_key, max_key, opts)
+    select_by_match_spec(table_name, match_spec)
   end
 
   @spec select_by_min_key(atom, any) :: list
   def select_by_min_key(table_name, min_key) do
-    match_spec = MatchSpec.min_key(min_key)
-    :dets.select(table_name, match_spec)
+    match_spec = FinderMatchSpec.min_key(min_key)
+    select_by_match_spec(table_name, match_spec)
   end
 
   @spec select_by_max_key(atom, any, list) :: list
   def select_by_max_key(table_name, max_key, opts \\ []) do
-    match_spec = MatchSpec.max_key(max_key, opts)
-    :dets.select(table_name, match_spec)
+    match_spec = FinderMatchSpec.max_key(max_key, opts)
+    select_by_match_spec(table_name, match_spec)
   end
 
   @spec select_by_value_range(atom, any, any, list) :: list
   def select_by_value_range(table_name, min_value, max_value, opts \\ []) do
-    match_spec = MatchSpec.value_range(min_value, max_value, opts)
-    :dets.select(table_name, match_spec)
+    match_spec = FinderMatchSpec.value_range(min_value, max_value, opts)
+    select_by_match_spec(table_name, match_spec)
   end
 
   @spec select_by_min_value(atom, any) :: list
   def select_by_min_value(table_name, min_value) do
-    match_spec = MatchSpec.min_value(min_value)
-    :dets.select(table_name, match_spec)
+    match_spec = FinderMatchSpec.min_value(min_value)
+    select_by_match_spec(table_name, match_spec)
   end
 
   @spec select_by_max_value(atom, any, list) :: list
   def select_by_max_value(table_name, max_value, opts \\ []) do
-    match_spec = MatchSpec.max_value(max_value, opts)
-    :dets.select(table_name, match_spec)
+    match_spec = FinderMatchSpec.max_value(max_value, opts)
+    select_by_match_spec(table_name, match_spec)
+  end
+
+  #
+  # Select delete
+  #
+
+  @spec delete_by_match_spec(atom, list) :: integer | {:error, any}
+  def delete_by_match_spec(table_name, match_spec) do
+    :dets.select_delete(table_name, match_spec)
+  end
+
+  @spec delete_by_key_range(atom, any, any, list) :: integer | {:error, any}
+  def delete_by_key_range(table_name, min_key, max_key, opts \\ []) do
+    match_spec = BooleanMatchSpec.key_range(min_key, max_key, opts)
+    delete_by_match_spec(table_name, match_spec)
+  end
+
+  @spec delete_by_min_key(atom, any) :: integer | {:error, any}
+  def delete_by_min_key(table_name, min_key) do
+    match_spec = BooleanMatchSpec.min_key(min_key)
+    delete_by_match_spec(table_name, match_spec)
+  end
+
+  @spec delete_by_max_key(atom, any, list) :: integer | {:error, any}
+  def delete_by_max_key(table_name, max_key, opts \\ []) do
+    match_spec = BooleanMatchSpec.max_key(max_key, opts)
+    delete_by_match_spec(table_name, match_spec)
+  end
+
+  @spec delete_by_value_range(atom, any, any, list) :: integer | {:error, any}
+  def delete_by_value_range(table_name, min_value, max_value, opts \\ []) do
+    match_spec = BooleanMatchSpec.value_range(min_value, max_value, opts)
+    delete_by_match_spec(table_name, match_spec)
+  end
+
+  @spec delete_by_min_value(atom, any) :: integer | {:error, any}
+  def delete_by_min_value(table_name, min_value) do
+    match_spec = BooleanMatchSpec.min_value(min_value)
+    delete_by_match_spec(table_name, match_spec)
+  end
+
+  @spec delete_by_max_value(atom, any, list) :: integer | {:error, any}
+  def delete_by_max_value(table_name, max_value, opts \\ []) do
+    match_spec = BooleanMatchSpec.max_value(max_value, opts)
+    delete_by_match_spec(table_name, match_spec)
   end
 end

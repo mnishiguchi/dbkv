@@ -1,36 +1,20 @@
-defmodule DBKV.MatchSpec do
-  @moduledoc false
+defmodule DBKV.BooleanMatchSpec do
+  @moduledoc """
+  A collection of convenient match spec generators.
+  """
 
   require Ex2ms
-
-  def all() do
-    Ex2ms.fun do
-      {k, v} -> {k, v}
-    end
-  end
-
-  def keys() do
-    Ex2ms.fun do
-      {k, v} -> k
-    end
-  end
-
-  def values() do
-    Ex2ms.fun do
-      {k, v} -> v
-    end
-  end
 
   def key_range(min_key, max_key, opts) do
     max_key_inclusive = Keyword.get(opts, :max_key_inclusive, true)
 
     if max_key_inclusive do
       Ex2ms.fun do
-        {k, v} = kv when ^min_key <= k and k <= ^max_key -> kv
+        {k, v} = kv when ^min_key <= k and k <= ^max_key -> true
       end
     else
       Ex2ms.fun do
-        {k, v} = kv when ^min_key <= k and k < ^max_key -> kv
+        {k, v} = kv when ^min_key <= k and k < ^max_key -> true
       end
     end
   end
@@ -40,18 +24,18 @@ defmodule DBKV.MatchSpec do
 
     if max_value_inclusive do
       Ex2ms.fun do
-        {k, v} = kv when ^min_value <= v and v <= ^max_value -> kv
+        {k, v} = kv when ^min_value <= v and v <= ^max_value -> true
       end
     else
       Ex2ms.fun do
-        {k, v} = kv when ^min_value <= v and v < ^max_value -> kv
+        {k, v} = kv when ^min_value <= v and v < ^max_value -> true
       end
     end
   end
 
   def min_key(min_key) do
     Ex2ms.fun do
-      {k, v} = kv when ^min_key <= k -> kv
+      {k, v} = kv when ^min_key <= k -> true
     end
   end
 
@@ -60,18 +44,18 @@ defmodule DBKV.MatchSpec do
 
     if max_key_inclusive do
       Ex2ms.fun do
-        {k, v} = kv when k <= ^max_key -> kv
+        {k, v} = kv when k <= ^max_key -> true
       end
     else
       Ex2ms.fun do
-        {k, v} = kv when k < ^max_key -> kv
+        {k, v} = kv when k < ^max_key -> true
       end
     end
   end
 
   def min_value(min_value) do
     Ex2ms.fun do
-      {k, v} = kv when ^min_value <= v -> kv
+      {k, v} = kv when ^min_value <= v -> true
     end
   end
 
@@ -80,11 +64,11 @@ defmodule DBKV.MatchSpec do
 
     if max_value_inclusive do
       Ex2ms.fun do
-        {k, v} = kv when v <= ^max_value -> kv
+        {k, v} = kv when v <= ^max_value -> true
       end
     else
       Ex2ms.fun do
-        {k, v} = kv when v < ^max_value -> kv
+        {k, v} = kv when v < ^max_value -> true
       end
     end
   end

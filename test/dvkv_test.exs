@@ -80,6 +80,22 @@ defmodule DBKVTest do
     assert 0 == size(dbkv)
   end
 
+  test "increment", %{table_name: dbkv} do
+    :ok = put_new(dbkv, "count", 0)
+
+    assert 1 == increment(dbkv, "count", 1)
+    assert 2 == increment(dbkv, "count", 1)
+    assert 9 == increment(dbkv, "count", 7)
+  end
+
+  test "decrement", %{table_name: dbkv} do
+    :ok = put_new(dbkv, "count", 9)
+
+    assert 8 == decrement(dbkv, "count", 1)
+    assert 7 == decrement(dbkv, "count", 1)
+    assert 0 == decrement(dbkv, "count", 7)
+  end
+
   test "all", %{table_name: dbkv} do
     :ok = put_new(dbkv, 0, "a")
     :ok = put_new(dbkv, 1, "b")
@@ -195,19 +211,85 @@ defmodule DBKVTest do
     assert [] == select_by_max_value(dbkv, "#")
   end
 
-  test "increment", %{table_name: dbkv} do
-    :ok = put_new(dbkv, "count", 0)
+  test "delete_by_match_spec", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
-    assert 1 == increment(dbkv, "count", 1)
-    assert 2 == increment(dbkv, "count", 1)
-    assert 9 == increment(dbkv, "count", 7)
+    match_spec =
+      Ex2ms.fun do
+        {k, v} = kv when 2 <= k and k <= 3 -> true
+      end
+
+    assert 2 == delete_by_match_spec(dbkv, match_spec)
+    assert 3 == size(dbkv)
   end
 
-  test "decrement", %{table_name: dbkv} do
-    :ok = put_new(dbkv, "count", 9)
+  test "delete_by_key_range", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
 
-    assert 8 == decrement(dbkv, "count", 1)
-    assert 7 == decrement(dbkv, "count", 1)
-    assert 0 == decrement(dbkv, "count", 7)
+    assert 3 == delete_by_key_range(dbkv, 1, 3)
+    assert 2 == size(dbkv)
+  end
+
+  test "delete_by_min_key", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
+
+    assert 2 == delete_by_min_key(dbkv, 3)
+    assert 3 == size(dbkv)
+  end
+
+  test "delete_by_max_key", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
+
+    assert 3 == delete_by_max_key(dbkv, 2)
+    assert 2 == size(dbkv)
+  end
+
+  test "delete_by_value_range", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
+
+    assert 2 == delete_by_value_range(dbkv, "c", "d")
+    assert 3 == size(dbkv)
+  end
+
+  test "delete_by_min_value", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
+
+    assert 3 == delete_by_min_value(dbkv, "c")
+    assert 2 == size(dbkv)
+  end
+
+  test "delete_by_max_value", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+    :ok = put_new(dbkv, 3, "d")
+    :ok = put_new(dbkv, 4, "e")
+
+    assert 2 == delete_by_max_value(dbkv, "b")
+    assert 3 == size(dbkv)
   end
 end
