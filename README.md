@@ -132,6 +132,17 @@ iex> DBKV.get(:nonexistent_table, "temperature")
 
 `DBKV` is a thin wrapper of `:dets`. You can mix and match with any [`:dets` functions](https://erlang.org/doc/man/dets.html) if you wish.
 
+```elixir
+iex> :dets.info(t)
+[
+  type: :set,
+  keypos: 1,
+  size: 0,
+  file_size: 5464,
+  filename: 'tmp/my_table.db'
+]
+```
+
 ## Installation
 
 `DBKV` can be installed by adding `dbkv` to your list of dependencies in mix.exs:

@@ -27,7 +27,7 @@ defmodule DBKVTest do
              keypos: _,
              size: _,
              type: :set
-           } = DBKV.describe_table(dbkv)
+           } = DBKV.info(dbkv)
 
     assert DBKV.exist?(dbkv)
 

@@ -40,13 +40,16 @@ defmodule DBKV do
   @deprecated "Use close/1 instead"
   def delete_table(table_name), do: delete_table(table_name)
 
-  @spec describe_table(atom) :: map | :undefined
-  def describe_table(table_name) when is_atom(table_name) do
+  @spec info(atom) :: map | :undefined
+  def info(table_name) when is_atom(table_name) do
     case :dets.info(table_name) do
       :undefined -> :undefined
       info_list -> Enum.into(info_list, %{})
     end
   end
+
+  @deprecated "Use info/1 instead"
+  def describe_table(table_name), do: info(table_name)
 
   @spec exist?(atom) :: boolean
   def exist?(table_name) when is_atom(table_name) do
