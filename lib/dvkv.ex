@@ -11,14 +11,19 @@ defmodule DBKV do
   # Table
   #
 
-  @spec create_table(keyword) :: :ok | {:error, any}
-  def create_table(opts \\ []) do
+  @spec open(keyword) :: {:ok, atom} | {:error, any}
+  def open(opts \\ []) do
     name = Keyword.fetch!(opts, :name)
     data_dir = opts[:data_dir] || "tmp"
     File.mkdir_p!(data_dir)
 
-    case :dets.open_file(dets_name(name), file: dets_file(data_dir, name), type: :set) do
-      {:ok, ^name} -> :ok
+    :dets.open_file(dets_name(name), file: dets_file(data_dir, name), type: :set)
+  end
+
+  @deprecated "Use open/1 instead"
+  def create_table(opts \\ []) do
+    case open(opts) do
+      {:ok, _} -> :ok
       error -> error
     end
   end
@@ -27,10 +32,13 @@ defmodule DBKV do
 
   defp dets_file(data_dir, name), do: :binary.bin_to_list("#{data_dir}/#{name}.db")
 
-  @spec delete_table(atom) :: :ok | {:error, any}
-  def delete_table(table_name) do
+  @spec close(atom) :: :ok | {:error, any}
+  def close(table_name) do
     :dets.close(table_name)
   end
+
+  @deprecated "Use close/1 instead"
+  def delete_table(table_name), do: delete_table(table_name)
 
   @spec describe_table(atom) :: map | :undefined
   def describe_table(table_name) when is_atom(table_name) do

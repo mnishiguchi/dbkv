@@ -9,41 +9,39 @@
 
 ## Usage
 
-### Create a table with a table name atom
+### Open a file
 
 ```elixir
-iex> table_name = :my_table
+iex> {:ok, t} = DBKV.open(name: :my_table, data_dir: "tmp")
+{:ok, :my_table}
 
-iex> DBKV.create_table(name: table_name, data_dir: "tmp")
-:ok
-
-iex> DBKV.exist?(table_name)
+iex> DBKV.exist?(t)
 true
 ```
 
 ### Upsert a key-value pair
 
 ```elixir
-iex> DBKV.put(table_name, "greeting", "Hi")
+iex> DBKV.put(t, "greeting", "Hi")
 :ok
 
-iex> DBKV.get(table_name, "greeting")
+iex> DBKV.get(t, "greeting")
 "Hi"
 ```
 
 ### Insert a key-value pair if it does not exist
 
 ```elixir
-iex> DBKV.put_new(table_name, "greeting", "Hello")
+iex> c
 {:error, :exists}
 
-iex> DBKV.get(table_name, "greeting")
+iex> DBKV.get(t, "greeting")
 "Hi"
 
-iex> DBKV.put_new(table_name, "temperature", 32)
+iex> DBKV.put_new(t, "temperature", 32)
 :ok
 
-iex> DBKV.get(table_name, "temperature")
+iex> DBKV.get(t, "temperature")
 32
 ```
 
@@ -51,65 +49,88 @@ iex> DBKV.get(table_name, "temperature")
 
 ```elixir
 # Update
-iex> DBKV.update(table_name, "greeting", "default", &(&1 <> "!!!"))
+iex> DBKV.update(t, "greeting", "default", &(&1 <> "!!!"))
 :ok
 
-iex> DBKV.get(table_name, "greeting")
+iex> DBKV.get(t, "greeting")
 "Hi!!!"
 
-iex> DBKV.update(table_name, "language", "default", &(&1 <> "!!!"))
+iex> DBKV.update(t, "language", "default", &(&1 <> "!!!"))
 :ok
 
-iex> DBKV.get(table_name, "language")
+iex> DBKV.get(t, "language")
 "default"
 ```
 
 ### Delete a key-value pair
 
 ```elixir
-iex> DBKV.delete(table_name, "greeting")
+iex> DBKV.delete(t, "greeting")
 :ok
 
-iex> DBKV.get(table_name, "greeting")
+iex> DBKV.get(t, "greeting")
 nil
 ```
 
-### Data persistence across restart
+### Persistence across restart
 
 ```elixir
-iex> DBKV.delete_table(table_name)
+iex> DBKV.close(t)
 :ok
 
-iex> DBKV.exist?(table_name)
+iex> DBKV.exist?(t)
 false
 
-iex> DBKV.create_table(name: table_name, data_dir: "tmp")
-:ok
+iex> DBKV.open(name: t, data_dir: "tmp")
+{:ok, :my_table}
 
-iex> DBKV.get(table_name, "temperature")
+iex> DBKV.get(t, "temperature")
 32
 ```
 
 ### Select records
 
 ```elixir
-iex> DBKV.put_new(table_name, 0, "a")
-iex> DBKV.put_new(table_name, 1, "b")
-iex> DBKV.put_new(table_name, 2, "c")
-iex> DBKV.put_new(table_name, 3, "d")
-iex> DBKV.put_new(table_name, 4, "e")
+iex> DBKV.put_new(t, 0, "a")
+iex> DBKV.put_new(t, 1, "b")
+iex> DBKV.put_new(t, 2, "c")
+iex> DBKV.put_new(t, 3, "d")
+iex> DBKV.put_new(t, 4, "e")
+```
 
-# By key range
-iex> DBKV.select_by_key_range(table_name, 1, 3)
-[{1, "b"}, {2, "c"}, {3, "d"}]
+By key range
 
-# By match spec
-iex> require Ex2ms
-iex> match_spec = Ex2ms.fun do {k, v} = kv when 1 <= k and k <= 3 -> kv end
-[{{:"$1", :"$2"}, [{:andalso, {:"=<", 1, :"$1"}, {:"=<", :"$1", 3}}], [:"$_"]}]
-iex> DBKV.select_by_match_spec(table_name, match_spec)
+```elixir
+iex> DBKV.select_by_key_range(t, 1, 3)
 [{1, "b"}, {2, "c"}, {3, "d"}]
 ```
+
+By match spec
+
+```elixir
+iex> require Ex2ms
+
+iex> match_spec = Ex2ms.fun do {k, v} = kv when 1 <= k and k <= 3 -> kv end
+[{{:"$1", :"$2"}, [{:andalso, {:"=<", 1, :"$1"}, {:"=<", :"$1", 3}}], [:"$_"]}]
+
+iex> DBKV.select_by_match_spec(t, match_spec)
+[{1, "b"}, {2, "c"}, {3, "d"}]
+```
+
+### Argument Error
+
+When a table is not started, underlying `:dets` will raise an argument error. Please make sure that the table is started with a correct name.
+
+```elixir
+iex> DBKV.get(:nonexistent_table, "temperature")
+** (ArgumentError) argument error
+    (stdlib 3.15.1) dets.erl:1259: :dets.lookup(:nonexistent_table, "temperature")
+    (dbkv 0.1.2) lib/dvkv.ex:78: DBKV.get/3
+```
+
+### Using `:dets` functions
+
+`DBKV` is a thin wrapper of `:dets`. You can mix and match with any [`:dets` functions](https://erlang.org/doc/man/dets.html) if you wish.
 
 ## Installation
 
