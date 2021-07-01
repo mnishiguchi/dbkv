@@ -17,6 +17,11 @@ defmodule DBKVTest do
     %{table_name: table_name}
   end
 
+  test "when table not exists" do
+    assert_raise ArgumentError, fn -> get(:non_existent_table, 0) end
+    assert_raise ArgumentError, fn -> put(:non_existent_table, 0, 0) end
+  end
+
   test "basic use", %{table_name: dbkv} do
     assert %{
              file_size: _,
@@ -64,6 +69,15 @@ defmodule DBKVTest do
     refute exist?(dbkv)
     :ok = create_table(name: dbkv, data_dir: "tmp")
     assert "Elixir" == get(dbkv, :lang)
+  end
+
+  test "delete_all", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+
+    :ok = delete_all(dbkv)
+    assert 0 == size(dbkv)
   end
 
   test "select_by_match_spec", %{table_name: dbkv} do
@@ -157,8 +171,11 @@ defmodule DBKVTest do
     assert [] == select_by_max_value(dbkv, "#")
   end
 
-  test "when table not exists" do
-    assert_raise ArgumentError, fn -> get(:non_existent_table, 0) end
-    assert_raise ArgumentError, fn -> put(:non_existent_table, 0, 0) end
+  test "increment", %{table_name: dbkv} do
+    :ok = put_new(dbkv, "count", 0)
+
+    assert 1 == increment(dbkv, "count", 1)
+    assert 2 == increment(dbkv, "count", 1)
+    assert 9 == increment(dbkv, "count", 7)
   end
 end

@@ -96,6 +96,11 @@ defmodule DBKV do
     :dets.delete(table_name, key)
   end
 
+  @spec delete_all(atom) :: :ok | {:error, any}
+  def delete_all(table_name) when is_atom(table_name) do
+    :dets.delete_all_objects(table_name)
+  end
+
   @spec select_by_match_spec(atom, list) :: list
   def select_by_match_spec(table_name, match_spec) do
     :dets.select(table_name, match_spec)
@@ -135,5 +140,10 @@ defmodule DBKV do
   def select_by_max_value(table_name, max_value, opts \\ []) do
     match_spec = MatchSpec.max_value(max_value, opts)
     :dets.select(table_name, match_spec)
+  end
+
+  @spec increment(atom, any, number) :: number
+  def increment(table_name, key, by) do
+    :dets.update_counter(table_name, key, by)
   end
 end
