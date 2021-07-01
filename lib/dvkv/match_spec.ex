@@ -3,6 +3,24 @@ defmodule DBKV.MatchSpec do
 
   require Ex2ms
 
+  def all() do
+    Ex2ms.fun do
+      {k, v} -> {k, v}
+    end
+  end
+
+  def keys() do
+    Ex2ms.fun do
+      {k, v} -> k
+    end
+  end
+
+  def values() do
+    Ex2ms.fun do
+      {k, v} -> v
+    end
+  end
+
   def key_range(min_key, max_key, opts) do
     max_key_inclusive = Keyword.get(opts, :max_key_inclusive, true)
 

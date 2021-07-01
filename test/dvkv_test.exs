@@ -80,6 +80,30 @@ defmodule DBKVTest do
     assert 0 == size(dbkv)
   end
 
+  test "all", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+
+    assert [{0, "a"}, {1, "b"}, {2, "c"}] == all(dbkv)
+  end
+
+  test "keys", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+
+    assert [0, 1, 2] == keys(dbkv)
+  end
+
+  test "values", %{table_name: dbkv} do
+    :ok = put_new(dbkv, 0, "a")
+    :ok = put_new(dbkv, 1, "b")
+    :ok = put_new(dbkv, 2, "c")
+
+    assert ["a", "b", "c"] == values(dbkv)
+  end
+
   test "select_by_match_spec", %{table_name: dbkv} do
     :ok = put_new(dbkv, 0, "a")
     :ok = put_new(dbkv, 1, "b")

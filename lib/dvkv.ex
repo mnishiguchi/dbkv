@@ -58,7 +58,10 @@ defmodule DBKV do
 
   @spec has_key?(atom, any) :: boolean
   def has_key?(table_name, key) when is_atom(table_name) do
-    !is_nil(get(table_name, key))
+    case :dets.member(table_name, key) do
+      true -> true
+      _ -> false
+    end
   end
 
   @spec get(atom, any, any) :: any
@@ -101,6 +104,29 @@ defmodule DBKV do
     :dets.delete_all_objects(table_name)
   end
 
+  @spec all(atom) :: list
+  def all(table_name) do
+    match_spec = MatchSpec.all()
+    :dets.select(table_name, match_spec)
+  end
+
+  @spec keys(atom) :: list
+  def keys(table_name) do
+    match_spec = MatchSpec.keys()
+    :dets.select(table_name, match_spec)
+  end
+
+  @spec values(atom) :: list
+  def values(table_name) do
+    match_spec = MatchSpec.values()
+    :dets.select(table_name, match_spec)
+  end
+
+  @spec increment(atom, any, number) :: number
+  def increment(table_name, key, by) do
+    :dets.update_counter(table_name, key, by)
+  end
+
   @spec select_by_match_spec(atom, list) :: list
   def select_by_match_spec(table_name, match_spec) do
     :dets.select(table_name, match_spec)
@@ -140,10 +166,5 @@ defmodule DBKV do
   def select_by_max_value(table_name, max_value, opts \\ []) do
     match_spec = MatchSpec.max_value(max_value, opts)
     :dets.select(table_name, match_spec)
-  end
-
-  @spec increment(atom, any, number) :: number
-  def increment(table_name, key, by) do
-    :dets.update_counter(table_name, key, by)
   end
 end
