@@ -1,7 +1,5 @@
 defmodule DBKV.FinderMatchSpec do
-  @moduledoc """
-  A collection of convenient match spec generators.
-  """
+  @moduledoc false
 
   require Ex2ms
 

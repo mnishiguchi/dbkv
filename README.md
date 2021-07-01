@@ -48,7 +48,6 @@ iex> DBKV.get(t, "temperature")
 ### Update a key-value pair with a function
 
 ```elixir
-# Update
 iex> DBKV.update(t, "greeting", "default", &(&1 <> "!!!"))
 :ok
 

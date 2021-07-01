@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2021-07-01
+
+**Changed**
+- Add `info/1`, which deprecated `describe_table/1`
+- Add `open/1` and `close/1`, which deprecates `create_table/1` and `delete_table/1`
+
 ## [0.1.2] - 2021-06-30
 
 **Changed**
@@ -27,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release
 
-[Unreleased]: https://github.com/mnishiguchi/dbkv/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/mnishiguchi/dbkv/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.3
 [0.1.2]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.2
 [0.1.1]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.1
 [0.1.0]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.0
