@@ -127,6 +127,11 @@ defmodule DBKV do
     :dets.update_counter(table_name, key, by)
   end
 
+  @spec decrement(atom, any, number) :: number
+  def decrement(table_name, key, by) do
+    :dets.update_counter(table_name, key, -by)
+  end
+
   @spec select_by_match_spec(atom, list) :: list
   def select_by_match_spec(table_name, match_spec) do
     :dets.select(table_name, match_spec)

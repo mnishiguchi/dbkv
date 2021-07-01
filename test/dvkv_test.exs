@@ -202,4 +202,12 @@ defmodule DBKVTest do
     assert 2 == increment(dbkv, "count", 1)
     assert 9 == increment(dbkv, "count", 7)
   end
+
+  test "decrement", %{table_name: dbkv} do
+    :ok = put_new(dbkv, "count", 9)
+
+    assert 8 == decrement(dbkv, "count", 1)
+    assert 7 == decrement(dbkv, "count", 1)
+    assert 0 == decrement(dbkv, "count", 7)
+  end
 end
