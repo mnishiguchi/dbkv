@@ -149,7 +149,7 @@ iex> :dets.info(t)
 ```elixir
 def deps do
   [
-    {:dbkv, "~> 0.1"}
+    {:dbkv, "~> 0.2"}
   ]
 end
 ```

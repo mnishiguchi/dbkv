@@ -7,13 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2021-07-02
+
+**Changed**
+- Table name defaults to `DBKV` if not specified in `open/1` options.
+- Arguments of `select_by_*` and `delete_by_*` functions
+
+**Removed**
+- deprecated functions
+  - `create_table/1`
+  - `delete_table/1`
+  - `describe_table/1`
+  - `exist?/1`
+
 ## [0.1.4] - 2021-07-01
 
 **Added**
 - `open?/1` deprecating `exist?/1`
-
-**Misc**
-- Improved API docs
 
 ## [0.1.3] - 2021-07-01
 
@@ -41,7 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release
 
-[Unreleased]: https://github.com/mnishiguchi/dbkv/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/mnishiguchi/dbkv/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.2.0
 [0.1.4]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.4
 [0.1.3]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.3
 [0.1.2]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.2
