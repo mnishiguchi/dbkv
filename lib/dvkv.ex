@@ -224,15 +224,15 @@ defmodule DBKV do
     select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_min_key(t, any) :: list
-  def select_by_min_key(table, min_key) do
-    match_spec = FinderMatchSpec.min_key(min_key)
+  @spec select_by_min_key(t, any, keyword) :: list
+  def select_by_min_key(table, min_key, inclusive \\ true) do
+    match_spec = FinderMatchSpec.min_key(min_key, inclusive)
     select_by_match_spec(table, match_spec)
   end
 
   @spec select_by_max_key(t, any, keyword) :: list
-  def select_by_max_key(table, max_key, opts \\ []) do
-    match_spec = FinderMatchSpec.max_key(max_key, opts)
+  def select_by_max_key(table, max_key, inclusive \\ true) do
+    match_spec = FinderMatchSpec.max_key(max_key, inclusive)
     select_by_match_spec(table, match_spec)
   end
 
@@ -242,15 +242,15 @@ defmodule DBKV do
     select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_min_value(t, any) :: list
-  def select_by_min_value(table, min_value) do
-    match_spec = FinderMatchSpec.min_value(min_value)
+  @spec select_by_min_value(t, any, keyword) :: list
+  def select_by_min_value(table, min_value, inclusive \\ true) do
+    match_spec = FinderMatchSpec.min_value(min_value, inclusive)
     select_by_match_spec(table, match_spec)
   end
 
   @spec select_by_max_value(t, any, keyword) :: list
-  def select_by_max_value(table, max_value, opts \\ []) do
-    match_spec = FinderMatchSpec.max_value(max_value, opts)
+  def select_by_max_value(table, max_value, inclusive \\ true) do
+    match_spec = FinderMatchSpec.max_value(max_value, inclusive)
     select_by_match_spec(table, match_spec)
   end
 
@@ -269,15 +269,15 @@ defmodule DBKV do
     delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_min_key(t, any) :: integer | {:error, any}
-  def delete_by_min_key(table, min_key) do
-    match_spec = BooleanMatchSpec.min_key(min_key)
+  @spec delete_by_min_key(t, any, boolean) :: integer | {:error, any}
+  def delete_by_min_key(table, min_key, inclusive \\ true) do
+    match_spec = BooleanMatchSpec.min_key(min_key, inclusive)
     delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_max_key(t, any, keyword) :: integer | {:error, any}
-  def delete_by_max_key(table, max_key, opts \\ []) do
-    match_spec = BooleanMatchSpec.max_key(max_key, opts)
+  @spec delete_by_max_key(t, any, boolean) :: integer | {:error, any}
+  def delete_by_max_key(table, max_key, inclusive \\ true) do
+    match_spec = BooleanMatchSpec.max_key(max_key, inclusive)
     delete_by_match_spec(table, match_spec)
   end
 
@@ -287,15 +287,15 @@ defmodule DBKV do
     delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_min_value(t, any) :: integer | {:error, any}
-  def delete_by_min_value(table, min_value) do
-    match_spec = BooleanMatchSpec.min_value(min_value)
+  @spec delete_by_min_value(t, any, boolean) :: integer | {:error, any}
+  def delete_by_min_value(table, min_value, inclusive \\ true) do
+    match_spec = BooleanMatchSpec.min_value(min_value, inclusive)
     delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_max_value(t, any, keyword) :: integer | {:error, any}
-  def delete_by_max_value(table, max_value, opts \\ []) do
-    match_spec = BooleanMatchSpec.max_value(max_value, opts)
+  @spec delete_by_max_value(t, any, boolean) :: integer | {:error, any}
+  def delete_by_max_value(table, max_value, inclusive \\ true) do
+    match_spec = BooleanMatchSpec.max_value(max_value, inclusive)
     delete_by_match_spec(table, match_spec)
   end
 end
