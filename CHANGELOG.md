@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2021-07-02
+
+**Fixed**
+- Handle error in `select_by_match_spec/3`
+- Fix incorrect range match specs
+
+**Added**
+- `all/2`
+- `init_table/2`
+
 ## [0.2.0] - 2021-07-02
 
 **Changed**
@@ -51,7 +61,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release
 
-[Unreleased]: https://github.com/mnishiguchi/dbkv/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/mnishiguchi/dbkv/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.2.1
 [0.2.0]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.2.0
 [0.1.4]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.4
 [0.1.3]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.1.3

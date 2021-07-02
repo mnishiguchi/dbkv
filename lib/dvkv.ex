@@ -207,7 +207,7 @@ defmodule DBKV do
   end
 
   @doc """
-  Returns all `keys` from `table`.
+  Returns all keys from `table`.
   """
   @spec keys(t) :: list | {:error, any}
   def keys(table) when is_atom(table) do
@@ -216,7 +216,7 @@ defmodule DBKV do
   end
 
   @doc """
-  Returns all `values` from `table`.
+  Returns all values from `table`.
   """
   @spec values(t) :: list | {:error, any}
   def values(table) when is_atom(table) do
