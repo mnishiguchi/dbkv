@@ -36,7 +36,7 @@ defmodule DBKV.MixProject do
 
   defp package do
     %{
-      description: "A disk-based key-value store built on top of :dets",
+      description: "A disk-based key-value storage built on top of dets",
       files: [
         "lib",
         "test",

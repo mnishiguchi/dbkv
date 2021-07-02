@@ -104,7 +104,7 @@ defmodule DBKV do
   #
 
   @doc """
-  Increment a number field by one.
+  Increments a number field by one.
   """
   @spec increment(t, any, number) :: number
   def increment(table, key, by) when is_atom(table) do
@@ -112,7 +112,7 @@ defmodule DBKV do
   end
 
   @doc """
-  Decrement a number field by one.
+  Decrements a number field by one.
   """
   @spec decrement(t, any, number) :: number
   def decrement(table, key, by) when is_atom(table) do
