@@ -8,6 +8,7 @@ defmodule DBKV do
   alias DBKV.FinderMatchSpec
 
   @type t :: atom
+  @type entry :: {any, any}
 
   @typedoc """
   Match Specifications. See https://erlang.org/doc/man/dets.html#type-match_spec
@@ -90,6 +91,14 @@ defmodule DBKV do
     end
   end
 
+  @doc """
+  Replaces the existing entries of `table` with `entries`.
+  """
+  @spec init_table(t, [entry]) :: {any, any}
+  def init_table(table, entries) when is_atom(table) and is_list(entries) do
+    :dets.init_table(table, fn _ -> {entries, fn _ -> :end_of_input end} end)
+  end
+
   #
   # Counter
   #
@@ -98,7 +107,7 @@ defmodule DBKV do
   Increment a number field by one.
   """
   @spec increment(t, any, number) :: number
-  def increment(table, key, by) do
+  def increment(table, key, by) when is_atom(table) do
     :dets.update_counter(table, key, by)
   end
 
@@ -106,7 +115,7 @@ defmodule DBKV do
   Decrement a number field by one.
   """
   @spec decrement(t, any, number) :: number
-  def decrement(table, key, by) do
+  def decrement(table, key, by) when is_atom(table) do
     :dets.update_counter(table, key, -by)
   end
 
@@ -184,7 +193,7 @@ defmodule DBKV do
   Returns all entries from `table`.
   """
   @spec all(t) :: list
-  def all(table) do
+  def all(table) when is_atom(table) do
     match_spec = FinderMatchSpec.all()
     select_by_match_spec(table, match_spec)
   end
@@ -193,7 +202,7 @@ defmodule DBKV do
   Returns all `keys` from `table`.
   """
   @spec keys(t) :: list
-  def keys(table) do
+  def keys(table) when is_atom(table) do
     match_spec = FinderMatchSpec.keys()
     select_by_match_spec(table, match_spec)
   end
@@ -202,7 +211,7 @@ defmodule DBKV do
   Returns all `values` from `table`.
   """
   @spec values(t) :: list
-  def values(table) do
+  def values(table) when is_atom(table) do
     match_spec = FinderMatchSpec.values()
     select_by_match_spec(table, match_spec)
   end
@@ -211,7 +220,7 @@ defmodule DBKV do
   Returns the results of applying `match_spec` to all or `n` entries stored in `table`.
   """
   @spec select_by_match_spec(t, list, non_neg_integer()) :: list
-  def select_by_match_spec(table, match_spec, n \\ :default) do
+  def select_by_match_spec(table, match_spec, n \\ :default) when is_atom(table) do
     case :dets.select(table, match_spec, n) do
       {list, _continuation} -> list
       :"$end_of_table" -> []
@@ -223,7 +232,7 @@ defmodule DBKV do
   boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
   """
   @spec select_by_key_range(t, any, any, range_options) :: list
-  def select_by_key_range(table, min_key, max_key, opts \\ []) do
+  def select_by_key_range(table, min_key, max_key, opts \\ []) when is_atom(table) do
     match_spec = FinderMatchSpec.key_range(min_key, max_key, opts)
     select_by_match_spec(table, match_spec)
   end
@@ -233,7 +242,7 @@ defmodule DBKV do
   The boundary can be excluded by setting `inclusive` to `false`.
   """
   @spec select_by_min_key(t, any, boolean) :: list
-  def select_by_min_key(table, min_key, inclusive \\ true) do
+  def select_by_min_key(table, min_key, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.min_key(min_key, inclusive)
     select_by_match_spec(table, match_spec)
   end
@@ -243,7 +252,7 @@ defmodule DBKV do
   The boundary can be excluded by setting `inclusive` to `false`.
   """
   @spec select_by_max_key(t, any, boolean) :: list
-  def select_by_max_key(table, max_key, inclusive \\ true) do
+  def select_by_max_key(table, max_key, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.max_key(max_key, inclusive)
     select_by_match_spec(table, match_spec)
   end
@@ -253,7 +262,7 @@ defmodule DBKV do
   The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
   """
   @spec select_by_value_range(t, any, any, range_options) :: list
-  def select_by_value_range(table, min_value, max_value, opts \\ []) do
+  def select_by_value_range(table, min_value, max_value, opts \\ []) when is_atom(table) do
     match_spec = FinderMatchSpec.value_range(min_value, max_value, opts)
     select_by_match_spec(table, match_spec)
   end
@@ -263,7 +272,7 @@ defmodule DBKV do
   The boundary can be excluded by setting `inclusive` to `false`.
   """
   @spec select_by_min_value(t, any, boolean) :: list
-  def select_by_min_value(table, min_value, inclusive \\ true) do
+  def select_by_min_value(table, min_value, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.min_value(min_value, inclusive)
     select_by_match_spec(table, match_spec)
   end
@@ -273,7 +282,7 @@ defmodule DBKV do
   The boundary can be excluded by setting `inclusive` to `false`.
   """
   @spec select_by_max_value(t, any, boolean) :: list
-  def select_by_max_value(table, max_value, inclusive \\ true) do
+  def select_by_max_value(table, max_value, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.max_value(max_value, inclusive)
     select_by_match_spec(table, match_spec)
   end
@@ -287,7 +296,7 @@ defmodule DBKV do
   Returns the number of deleted entries.
   """
   @spec delete_by_match_spec(t, list) :: integer | {:error, any}
-  def delete_by_match_spec(table, match_spec) do
+  def delete_by_match_spec(table, match_spec) when is_atom(table) do
     :dets.select_delete(table, match_spec)
   end
 
@@ -297,7 +306,7 @@ defmodule DBKV do
   to `false`.
   """
   @spec delete_by_key_range(t, any, any, range_options) :: integer | {:error, any}
-  def delete_by_key_range(table, min_key, max_key, opts \\ []) do
+  def delete_by_key_range(table, min_key, max_key, opts \\ []) when is_atom(table) do
     match_spec = BooleanMatchSpec.key_range(min_key, max_key, opts)
     delete_by_match_spec(table, match_spec)
   end
@@ -307,7 +316,7 @@ defmodule DBKV do
   The boundary can be excluded by setting `inclusive` to `false`.
   """
   @spec delete_by_min_key(t, any, boolean) :: integer | {:error, any}
-  def delete_by_min_key(table, min_key, inclusive \\ true) do
+  def delete_by_min_key(table, min_key, inclusive \\ true) when is_atom(table) do
     match_spec = BooleanMatchSpec.min_key(min_key, inclusive)
     delete_by_match_spec(table, match_spec)
   end
@@ -317,7 +326,7 @@ defmodule DBKV do
   The boundary can be excluded by setting `inclusive` to `false`.
   """
   @spec delete_by_max_key(t, any, boolean) :: integer | {:error, any}
-  def delete_by_max_key(table, max_key, inclusive \\ true) do
+  def delete_by_max_key(table, max_key, inclusive \\ true) when is_atom(table) do
     match_spec = BooleanMatchSpec.max_key(max_key, inclusive)
     delete_by_match_spec(table, match_spec)
   end
@@ -328,7 +337,7 @@ defmodule DBKV do
   to `false`.
   """
   @spec delete_by_value_range(t, any, any, range_options) :: integer | {:error, any}
-  def delete_by_value_range(table, min_value, max_value, opts \\ []) do
+  def delete_by_value_range(table, min_value, max_value, opts \\ []) when is_atom(table) do
     match_spec = BooleanMatchSpec.value_range(min_value, max_value, opts)
     delete_by_match_spec(table, match_spec)
   end
@@ -338,7 +347,7 @@ defmodule DBKV do
   The boundary can be excluded by setting `inclusive` to `false`.
   """
   @spec delete_by_min_value(t, any, boolean) :: integer | {:error, any}
-  def delete_by_min_value(table, min_value, inclusive \\ true) do
+  def delete_by_min_value(table, min_value, inclusive \\ true) when is_atom(table) do
     match_spec = BooleanMatchSpec.min_value(min_value, inclusive)
     delete_by_match_spec(table, match_spec)
   end
@@ -348,7 +357,7 @@ defmodule DBKV do
   The boundary can be excluded by setting `inclusive` to `false`.
   """
   @spec delete_by_max_value(t, any, boolean) :: integer | {:error, any}
-  def delete_by_max_value(table, max_value, inclusive \\ true) do
+  def delete_by_max_value(table, max_value, inclusive \\ true) when is_atom(table) do
     match_spec = BooleanMatchSpec.max_value(max_value, inclusive)
     delete_by_match_spec(table, match_spec)
   end

@@ -9,7 +9,7 @@
 
 ## Usage
 
-### Open a file
+### Open a database
 
 ```elixir
 iex> {:ok, t} = DBKV.open(name: :my_table, data_dir: "tmp")
@@ -87,21 +87,19 @@ iex> DBKV.get(t, "temperature")
 32
 ```
 
-### Select records
+### Initialize the table
 
 ```elixir
-iex> DBKV.put_new(t, 0, "a")
-iex> DBKV.put_new(t, 1, "b")
-iex> DBKV.put_new(t, 2, "c")
-iex> DBKV.put_new(t, 3, "d")
-iex> DBKV.put_new(t, 4, "e")
+iex> DBKV.init_table(t, [a: 0, b: 1, c: 2, d: 3, e: 4])
 ```
+
+### Select records
 
 By key range
 
 ```elixir
-iex> DBKV.select_by_key_range(t, 1, 3)
-[{1, "b"}, {2, "c"}, {3, "d"}]
+iex> DBKV.select_by_key_range(t, :b, :d)
+[b: 1, c: 2, d: 3]
 ```
 
 By match spec
@@ -109,12 +107,14 @@ By match spec
 ```elixir
 iex> require Ex2ms
 
-iex> match_spec = Ex2ms.fun do {k, v} = kv when 1 <= k and k <= 3 -> kv end
-[{{:"$1", :"$2"}, [{:andalso, {:"=<", 1, :"$1"}, {:"=<", :"$1", 3}}], [:"$_"]}]
+iex> match_spec = Ex2ms.fun do {k, v} = kv when :b <= k and k <= :d -> kv end
+[{{:"$1", :"$2"}, [{:andalso, {:"=<", :b, :"$1"}, {:"=<", :"$1", :d}}], [:"$_"]}]
 
 iex> DBKV.select_by_match_spec(t, match_spec)
-[{1, "b"}, {2, "c"}, {3, "d"}]
+[b: 1, c: 2, d: 3]
 ```
+
+## Troubleshooting
 
 ### Argument Error
 
@@ -124,7 +124,7 @@ When a table is not open, underlying `:dets` will raise `ArgumentError`. Please 
 iex> DBKV.get(:nonexistent_table, "temperature")
 ** (ArgumentError) argument error
     (stdlib 3.15.1) dets.erl:1259: :dets.lookup(:nonexistent_table, "temperature")
-    (dbkv 0.1.2) lib/dvkv.ex:78: DBKV.get/3
+    (dbkv 0.2.0) lib/dvkv.ex:131: DBKV.get/3
 ```
 
 ### Use `:dets` functions
@@ -142,6 +142,30 @@ iex> :dets.info(t)
 ]
 ```
 
+### `:invalid_objects_list` error
+
+When a table is initialized inappropriately, the table may return `{:error, :invalid_objects_list}`.
+In such a case, re-opening the table will fix it.
+
+```elixir
+iex> DBKV.init_table(t, ["invalid object list"])
+{:error, :invalid_objects_list}
+
+iex> DBKV.get(t, :a)
+** (CaseClauseError) no case clause matching: {:error, :invalid_objects_list}
+    (dbkv 0.2.0) lib/dvkv.ex:131: DBKV.get/3
+
+iex> DBKV.close(t)
+{:error, :invalid_objects_list}
+
+iex> {:ok, t} = DBKV.open(name: :my_table, data_dir: "tmp")
+dets: file "tmp/Elixir.DBKV.db" not properly closed, repairing ...
+{:ok, :my_table}
+
+iex> DBKV.all(t)
+[]
+```
+
 ## Installation
 
 `DBKV` can be installed by adding `dbkv` to your list of dependencies in mix.exs:
@@ -156,7 +180,7 @@ end
 
 Documentation can be found at [https://hexdocs.pm/dbkv](https://hexdocs.pm/dbkv).
 
-## Alternatives
+## Alternativess
 
 - [CubDB](https://github.com/lucaong/cubdb)
 - [`dets`](https://erlang.org/doc/man/dets.html)
