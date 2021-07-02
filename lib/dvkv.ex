@@ -9,19 +9,30 @@ defmodule DBKV do
 
   @type t :: atom
 
+  @typedoc """
+  Match Specifications. See https://erlang.org/doc/man/dets.html#type-match_spec
+  """
+  @type match_spec :: [{{:"$1", :"$2"}, [{any, any, any}, ...], [:"$_", ...]}, ...]
+  @type dbkv_options() :: [{:name, t} | {:data_dir, binary}]
+  @type range_options() :: [{:min_inclusive, boolean} | {:max_inclusive, boolean}]
+
   #
   # Table
   #
 
   @doc """
   Opens a table. An empty `:dets` table is created if no file exists.
-  """
-  @spec open(keyword) :: {:ok, t} | {:error, any}
-  def open(opts \\ []) do
-    name = Keyword.fetch!(opts, :name)
-    data_dir = opts[:data_dir] || "tmp"
-    File.mkdir_p!(data_dir)
 
+  The optional argument is a keyword list of options:
+  * `name`: a name of the table (defaults to `DBKV`)
+  * `data_dir`: the directory path where the database files will be stored (defaults to `"tmp"`)
+  """
+  @spec open(dbkv_options) :: {:ok, t} | {:error, any}
+  def open(opts \\ []) do
+    name = opts[:name] || __MODULE__
+    data_dir = opts[:data_dir] || "tmp"
+
+    File.mkdir_p!(data_dir)
     :dets.open_file(dets_name(name), file: dets_file(data_dir, name), type: :set)
   end
 
@@ -211,7 +222,7 @@ defmodule DBKV do
   Returns a specified range of entries from `table`. By default, the range is inclusive. The range
   boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
   """
-  @spec select_by_key_range(t, any, any, keyword) :: list
+  @spec select_by_key_range(t, any, any, range_options) :: list
   def select_by_key_range(table, min_key, max_key, opts \\ []) do
     match_spec = FinderMatchSpec.key_range(min_key, max_key, opts)
     select_by_match_spec(table, match_spec)
@@ -221,7 +232,7 @@ defmodule DBKV do
   Returns all entries from `table` where the key is greater than or equal to `min_key`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_min_key(t, any, keyword) :: list
+  @spec select_by_min_key(t, any, boolean) :: list
   def select_by_min_key(table, min_key, inclusive \\ true) do
     match_spec = FinderMatchSpec.min_key(min_key, inclusive)
     select_by_match_spec(table, match_spec)
@@ -231,7 +242,7 @@ defmodule DBKV do
   Returns all entries from `table` where the key is less than or equal to `max_key`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_max_key(t, any, keyword) :: list
+  @spec select_by_max_key(t, any, boolean) :: list
   def select_by_max_key(table, max_key, inclusive \\ true) do
     match_spec = FinderMatchSpec.max_key(max_key, inclusive)
     select_by_match_spec(table, match_spec)
@@ -241,7 +252,7 @@ defmodule DBKV do
   Returns a specified range of entries from `table`. By default, the range is inclusive.
   The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
   """
-  @spec select_by_value_range(t, any, any, keyword) :: list
+  @spec select_by_value_range(t, any, any, range_options) :: list
   def select_by_value_range(table, min_value, max_value, opts \\ []) do
     match_spec = FinderMatchSpec.value_range(min_value, max_value, opts)
     select_by_match_spec(table, match_spec)
@@ -251,7 +262,7 @@ defmodule DBKV do
   Returns all entries from `table` where the value is greater than or equal to `min_value`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_min_value(t, any, keyword) :: list
+  @spec select_by_min_value(t, any, boolean) :: list
   def select_by_min_value(table, min_value, inclusive \\ true) do
     match_spec = FinderMatchSpec.min_value(min_value, inclusive)
     select_by_match_spec(table, match_spec)
@@ -261,7 +272,7 @@ defmodule DBKV do
   Returns all entries from `table` where the value is less than or equal to `max_value`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_max_value(t, any, keyword) :: list
+  @spec select_by_max_value(t, any, boolean) :: list
   def select_by_max_value(table, max_value, inclusive \\ true) do
     match_spec = FinderMatchSpec.max_value(max_value, inclusive)
     select_by_match_spec(table, match_spec)
@@ -285,7 +296,7 @@ defmodule DBKV do
   inclusive. The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive`
   to `false`.
   """
-  @spec delete_by_key_range(t, any, any, keyword) :: integer | {:error, any}
+  @spec delete_by_key_range(t, any, any, range_options) :: integer | {:error, any}
   def delete_by_key_range(table, min_key, max_key, opts \\ []) do
     match_spec = BooleanMatchSpec.key_range(min_key, max_key, opts)
     delete_by_match_spec(table, match_spec)
@@ -316,7 +327,7 @@ defmodule DBKV do
   inclusive. The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive`
   to `false`.
   """
-  @spec delete_by_value_range(t, any, any, keyword) :: integer | {:error, any}
+  @spec delete_by_value_range(t, any, any, range_options) :: integer | {:error, any}
   def delete_by_value_range(table, min_value, max_value, opts \\ []) do
     match_spec = BooleanMatchSpec.value_range(min_value, max_value, opts)
     delete_by_match_spec(table, match_spec)
