@@ -141,7 +141,12 @@ defmodule DBKVTest do
 
     assert_equal(
       [{1, "b"}, {2, "c"}],
-      DBKV.select_by_key_range(t, 1, 3, max_key_inclusive: false)
+      DBKV.select_by_key_range(t, 1, 3, max_inclusive: false)
+    )
+
+    assert_equal(
+      [{2, "c"}],
+      DBKV.select_by_key_range(t, 1, 3, min_inclusive: false, max_inclusive: false)
     )
 
     assert_equal([], DBKV.select_by_key_range(t, 10, 20))
@@ -170,7 +175,7 @@ defmodule DBKVTest do
 
     assert_equal(
       [{1, "b"}, {2, "c"}],
-      DBKV.select_by_value_range(t, "b", "d", max_value_inclusive: false)
+      DBKV.select_by_value_range(t, "b", "d", max_inclusive: false)
     )
 
     assert_equal([], DBKV.select_by_value_range(t, "v", "z"))

@@ -22,48 +22,48 @@ defmodule DBKV.FinderMatchSpec do
   end
 
   def key_range(min_key, max_key, opts \\ []) do
-    min_key_inclusive = Keyword.get(opts, :min_key_inclusive, true)
-    max_key_inclusive = Keyword.get(opts, :max_key_inclusive, true)
+    min_inclusive = Keyword.get(opts, :min_inclusive, true)
+    max_inclusive = Keyword.get(opts, :max_inclusive, true)
 
     cond do
-      min_key_inclusive && max_key_inclusive ->
+      min_inclusive && max_inclusive ->
         Ex2ms.fun do
           {k, v} = kv when ^min_key <= k and k <= ^max_key -> kv
         end
 
-      min_key_inclusive ->
+      min_inclusive ->
         Ex2ms.fun do
           {k, v} = kv when ^min_key <= k and k < ^max_key -> kv
         end
 
-      max_key_inclusive ->
+      max_inclusive ->
         Ex2ms.fun do
-          {k, v} = kv when ^min_key <= k and k < ^max_key -> kv
+          {k, v} = kv when ^min_key < k and k <= ^max_key -> kv
         end
 
       true ->
         Ex2ms.fun do
-          {k, v} = kv when ^min_key < k and k > ^max_key -> kv
+          {k, v} = kv when ^min_key < k and k < ^max_key -> kv
         end
     end
   end
 
   def value_range(min_value, max_value, opts \\ []) do
-    min_value_inclusive = Keyword.get(opts, :min_value_inclusive, true)
-    max_value_inclusive = Keyword.get(opts, :max_value_inclusive, true)
+    min_inclusive = Keyword.get(opts, :min_inclusive, true)
+    max_inclusive = Keyword.get(opts, :max_inclusive, true)
 
     cond do
-      min_value_inclusive && max_value_inclusive ->
+      min_inclusive && max_inclusive ->
         Ex2ms.fun do
           {k, v} = kv when ^min_value <= v and v <= ^max_value -> kv
         end
 
-      min_value_inclusive ->
+      min_inclusive ->
         Ex2ms.fun do
           {k, v} = kv when ^min_value <= v and v < ^max_value -> kv
         end
 
-      max_value_inclusive ->
+      max_inclusive ->
         Ex2ms.fun do
           {k, v} = kv when ^min_value < v and v <= ^max_value -> kv
         end

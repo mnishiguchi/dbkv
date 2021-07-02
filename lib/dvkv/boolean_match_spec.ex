@@ -20,12 +20,12 @@ defmodule DBKV.BooleanMatchSpec do
 
       max_inclusive ->
         Ex2ms.fun do
-          {k, v} = kv when ^min_key <= k and k < ^max_key -> true
+          {k, v} = kv when ^min_key < k and k <= ^max_key -> true
         end
 
       true ->
         Ex2ms.fun do
-          {k, v} = kv when ^min_key < k and k > ^max_key -> true
+          {k, v} = kv when ^min_key < k and k < ^max_key -> true
         end
     end
   end
