@@ -25,14 +25,6 @@ defmodule DBKV do
     :dets.open_file(dets_name(name), file: dets_file(data_dir, name), type: :set)
   end
 
-  @deprecated "Use `open/1` instead"
-  def create_table(opts \\ []) do
-    case open(opts) do
-      {:ok, _} -> :ok
-      error -> error
-    end
-  end
-
   defp dets_name(name) when is_atom(name), do: name
 
   defp dets_file(data_dir, name), do: :binary.bin_to_list("#{data_dir}/#{name}.db")
@@ -46,9 +38,6 @@ defmodule DBKV do
     :dets.close(table)
   end
 
-  @deprecated "Use `close/1` instead"
-  def delete_table(table), do: delete_table(table)
-
   @doc """
   Returns information about `table`.
   """
@@ -60,9 +49,6 @@ defmodule DBKV do
     end
   end
 
-  @deprecated "Use `info/1` instead"
-  def describe_table(table), do: info(table)
-
   @doc """
   Returns whether `table` is open.
   """
@@ -71,8 +57,6 @@ defmodule DBKV do
     table in :dets.all()
   end
 
-  @deprecated "Use `open?/1` instead"
-  def exist?(table), do: open?(table)
 
   @doc """
   Returns the size of the collection in `table`.
