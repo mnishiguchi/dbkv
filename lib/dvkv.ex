@@ -7,11 +7,16 @@ defmodule DBKV do
   alias DBKV.BooleanMatchSpec
   alias DBKV.FinderMatchSpec
 
+  @type t :: atom
+
   #
   # Table
   #
 
-  @spec open(keyword) :: {:ok, atom} | {:error, any}
+  @doc """
+  Opens a table. An empty `:dets` table is created if no file exists.
+  """
+  @spec open(keyword) :: {:ok, t} | {:error, any}
   def open(opts \\ []) do
     name = Keyword.fetch!(opts, :name)
     data_dir = opts[:data_dir] || "tmp"
@@ -20,7 +25,7 @@ defmodule DBKV do
     :dets.open_file(dets_name(name), file: dets_file(data_dir, name), type: :set)
   end
 
-  @deprecated "Use open/1 instead"
+  @deprecated "Use `open/1` instead"
   def create_table(opts \\ []) do
     case open(opts) do
       {:ok, _} -> :ok
@@ -32,38 +37,62 @@ defmodule DBKV do
 
   defp dets_file(data_dir, name), do: :binary.bin_to_list("#{data_dir}/#{name}.db")
 
-  @spec close(atom) :: :ok | {:error, any}
-  def close(table_name) do
-    :dets.close(table_name)
+  @doc """
+  Closes a table. Only processes that have opened a table are allowed to close it.
+  All open tables must be closed before the system is stopped.
+  """
+  @spec close(t) :: :ok | {:error, any}
+  def close(table) do
+    :dets.close(table)
   end
 
-  @deprecated "Use close/1 instead"
-  def delete_table(table_name), do: delete_table(table_name)
+  @deprecated "Use `close/1` instead"
+  def delete_table(table), do: delete_table(table)
 
-  @spec info(atom) :: map | :undefined
-  def info(table_name) when is_atom(table_name) do
-    case :dets.info(table_name) do
+  @doc """
+  Returns information about `table`.
+  """
+  @spec info(t) :: map | :undefined
+  def info(table) when is_atom(table) do
+    case :dets.info(table) do
       :undefined -> :undefined
       info_list -> Enum.into(info_list, %{})
     end
   end
 
-  @deprecated "Use info/1 instead"
-  def describe_table(table_name), do: info(table_name)
+  @deprecated "Use `info/1` instead"
+  def describe_table(table), do: info(table)
 
-  @spec open?(atom) :: boolean
-  def open?(table_name) when is_atom(table_name) do
-    table_name in :dets.all()
+  @doc """
+  Returns whether `table` is open.
+  """
+  @spec open?(t) :: boolean
+  def open?(table) when is_atom(table) do
+    table in :dets.all()
   end
 
-  @deprecated "Use open?/1 instead"
-  def exist?(table_name), do: open?(table_name)
+  @deprecated "Use `open?/1` instead"
+  def exist?(table), do: open?(table)
 
-  @spec size(atom) :: integer | :undefined
-  def size(table_name) when is_atom(table_name) do
-    case :dets.info(table_name, :size) do
+  @doc """
+  Returns the size of the collection in `table`.
+  """
+  @spec size(t) :: integer | :undefined
+  def size(table) when is_atom(table) do
+    case :dets.info(table, :size) do
       :undefined -> :undefined
       size -> size
+    end
+  end
+
+  @doc """
+  Returns whether the given `key` exists in `table`.
+  """
+  @spec has_key?(t, any) :: boolean
+  def has_key?(table, key) when is_atom(table) do
+    case :dets.member(table, key) do
+      true -> true
+      _ -> false
     end
   end
 
@@ -71,173 +100,202 @@ defmodule DBKV do
   # CRUD
   #
 
-  @spec has_key?(atom, any) :: boolean
-  def has_key?(table_name, key) when is_atom(table_name) do
-    case :dets.member(table_name, key) do
-      true -> true
-      _ -> false
-    end
-  end
-
-  @spec get(atom, any, any) :: any
-  def get(table_name, key, default \\ nil) when is_atom(table_name) do
-    case :dets.lookup(table_name, key) do
+  @doc """
+  Gets the value for a specific `key` in `table`.
+  """
+  @spec get(t, any, any) :: any
+  def get(table, key, default \\ nil) when is_atom(table) do
+    case :dets.lookup(table, key) do
       [] -> default
       [{_key, value} | _rest] -> value
     end
   end
 
-  @spec put(atom, any, any) :: :ok | {:error, any}
-  def put(table_name, key, value) when is_atom(table_name) do
-    :dets.insert(table_name, [{key, value}])
+  @doc """
+  Puts the given `value` under `key` in `table`.
+  """
+  @spec put(t, any, any) :: :ok | {:error, any}
+  def put(table, key, value) when is_atom(table) do
+    :dets.insert(table, [{key, value}])
   end
 
-  @spec put_new(atom, any, any) :: :ok | {:error, any}
-  def put_new(table_name, key, value) when is_atom(table_name) do
-    case :dets.insert_new(table_name, [{key, value}]) do
+  @doc """
+  Puts the given `value` under `key` unless the entry `key` already exists in `table`.
+  """
+  @spec put_new(t, any, any) :: :ok | {:error, any}
+  def put_new(table, key, value) when is_atom(table) do
+    case :dets.insert_new(table, [{key, value}]) do
       false -> {:error, :exists}
       true -> :ok
       error -> error
     end
   end
 
-  @spec update(atom, any, any, (any -> any)) :: :ok | {:error, any}
-  def update(table_name, key, default, fun) when is_atom(table_name) and is_function(fun) do
-    case get(table_name, key) do
-      nil -> put(table_name, key, default)
-      value -> put(table_name, key, fun.(value))
+  @doc """
+  Updates the `key` in `table` with the given function.
+
+  If `key` is present in `table` then the existing `value` is passed to `fun` and its result is
+  used as the updated value of `key`. If `key` is not present in `table`, `default` is inserted as
+  the value of `key`. The default value will not be passed through the update function.
+  """
+  @spec update(t, any, any, (any -> any)) :: :ok | {:error, any}
+  def update(table, key, default, fun) when is_atom(table) and is_function(fun) do
+    case get(table, key) do
+      nil -> put(table, key, default)
+      value -> put(table, key, fun.(value))
     end
   end
 
-  @spec delete(atom, any) :: :ok | {:error, any}
-  def delete(table_name, key) when is_atom(table_name) do
-    :dets.delete(table_name, key)
+  @doc """
+  Deletes the entry in `table` for a specific `key`.
+  """
+  @spec delete(t, any) :: :ok | {:error, any}
+  def delete(table, key) when is_atom(table) do
+    :dets.delete(table, key)
   end
 
-  @spec delete_all(atom) :: :ok | {:error, any}
-  def delete_all(table_name) when is_atom(table_name) do
-    :dets.delete_all_objects(table_name)
+  @doc """
+  Deletes all entries from `table`.
+  """
+  @spec delete_all(t) :: :ok | {:error, any}
+  def delete_all(table) when is_atom(table) do
+    :dets.delete_all_objects(table)
   end
 
   #
   # Counter
   #
 
-  @spec increment(atom, any, number) :: number
-  def increment(table_name, key, by) do
-    :dets.update_counter(table_name, key, by)
+  @doc """
+  Increment a number field by one.
+  """
+  @spec increment(t, any, number) :: number
+  def increment(table, key, by) do
+    :dets.update_counter(table, key, by)
   end
 
-  @spec decrement(atom, any, number) :: number
-  def decrement(table_name, key, by) do
-    :dets.update_counter(table_name, key, -by)
+  @doc """
+  Decrement a number field by one.
+  """
+  @spec decrement(t, any, number) :: number
+  def decrement(table, key, by) do
+    :dets.update_counter(table, key, -by)
   end
 
   #
   # Select
   #
 
-  @spec all(atom) :: list
-  def all(table_name) do
+  @doc """
+  Returns all entries from `table`.
+  """
+  @spec all(t) :: list
+  def all(table) do
     match_spec = FinderMatchSpec.all()
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
-  @spec keys(atom) :: list
-  def keys(table_name) do
+  @doc """
+  Returns all `keys` from `table`.
+  """
+  @spec keys(t) :: list
+  def keys(table) do
     match_spec = FinderMatchSpec.keys()
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
-  @spec values(atom) :: list
-  def values(table_name) do
+  @doc """
+  Returns all `values` from `table`.
+  """
+  @spec values(t) :: list
+  def values(table) do
     match_spec = FinderMatchSpec.values()
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_match_spec(atom, list) :: list
-  def select_by_match_spec(table_name, match_spec) do
-    :dets.select(table_name, match_spec)
+  @spec select_by_match_spec(t, list) :: list
+  def select_by_match_spec(table, match_spec) do
+    :dets.select(table, match_spec)
   end
 
-  @spec select_by_key_range(atom, any, any, list) :: list
-  def select_by_key_range(table_name, min_key, max_key, opts \\ []) do
+  @spec select_by_key_range(t, any, any, keyword) :: list
+  def select_by_key_range(table, min_key, max_key, opts \\ []) do
     match_spec = FinderMatchSpec.key_range(min_key, max_key, opts)
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_min_key(atom, any) :: list
-  def select_by_min_key(table_name, min_key) do
+  @spec select_by_min_key(t, any) :: list
+  def select_by_min_key(table, min_key) do
     match_spec = FinderMatchSpec.min_key(min_key)
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_max_key(atom, any, list) :: list
-  def select_by_max_key(table_name, max_key, opts \\ []) do
+  @spec select_by_max_key(t, any, keyword) :: list
+  def select_by_max_key(table, max_key, opts \\ []) do
     match_spec = FinderMatchSpec.max_key(max_key, opts)
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_value_range(atom, any, any, list) :: list
-  def select_by_value_range(table_name, min_value, max_value, opts \\ []) do
+  @spec select_by_value_range(t, any, any, keyword) :: list
+  def select_by_value_range(table, min_value, max_value, opts \\ []) do
     match_spec = FinderMatchSpec.value_range(min_value, max_value, opts)
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_min_value(atom, any) :: list
-  def select_by_min_value(table_name, min_value) do
+  @spec select_by_min_value(t, any) :: list
+  def select_by_min_value(table, min_value) do
     match_spec = FinderMatchSpec.min_value(min_value)
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_max_value(atom, any, list) :: list
-  def select_by_max_value(table_name, max_value, opts \\ []) do
+  @spec select_by_max_value(t, any, keyword) :: list
+  def select_by_max_value(table, max_value, opts \\ []) do
     match_spec = FinderMatchSpec.max_value(max_value, opts)
-    select_by_match_spec(table_name, match_spec)
+    select_by_match_spec(table, match_spec)
   end
 
   #
   # Select delete
   #
 
-  @spec delete_by_match_spec(atom, list) :: integer | {:error, any}
-  def delete_by_match_spec(table_name, match_spec) do
-    :dets.select_delete(table_name, match_spec)
+  @spec delete_by_match_spec(t, list) :: integer | {:error, any}
+  def delete_by_match_spec(table, match_spec) do
+    :dets.select_delete(table, match_spec)
   end
 
-  @spec delete_by_key_range(atom, any, any, list) :: integer | {:error, any}
-  def delete_by_key_range(table_name, min_key, max_key, opts \\ []) do
+  @spec delete_by_key_range(t, any, any, keyword) :: integer | {:error, any}
+  def delete_by_key_range(table, min_key, max_key, opts \\ []) do
     match_spec = BooleanMatchSpec.key_range(min_key, max_key, opts)
-    delete_by_match_spec(table_name, match_spec)
+    delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_min_key(atom, any) :: integer | {:error, any}
-  def delete_by_min_key(table_name, min_key) do
+  @spec delete_by_min_key(t, any) :: integer | {:error, any}
+  def delete_by_min_key(table, min_key) do
     match_spec = BooleanMatchSpec.min_key(min_key)
-    delete_by_match_spec(table_name, match_spec)
+    delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_max_key(atom, any, list) :: integer | {:error, any}
-  def delete_by_max_key(table_name, max_key, opts \\ []) do
+  @spec delete_by_max_key(t, any, keyword) :: integer | {:error, any}
+  def delete_by_max_key(table, max_key, opts \\ []) do
     match_spec = BooleanMatchSpec.max_key(max_key, opts)
-    delete_by_match_spec(table_name, match_spec)
+    delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_value_range(atom, any, any, list) :: integer | {:error, any}
-  def delete_by_value_range(table_name, min_value, max_value, opts \\ []) do
+  @spec delete_by_value_range(t, any, any, keyword) :: integer | {:error, any}
+  def delete_by_value_range(table, min_value, max_value, opts \\ []) do
     match_spec = BooleanMatchSpec.value_range(min_value, max_value, opts)
-    delete_by_match_spec(table_name, match_spec)
+    delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_min_value(atom, any) :: integer | {:error, any}
-  def delete_by_min_value(table_name, min_value) do
+  @spec delete_by_min_value(t, any) :: integer | {:error, any}
+  def delete_by_min_value(table, min_value) do
     match_spec = BooleanMatchSpec.min_value(min_value)
-    delete_by_match_spec(table_name, match_spec)
+    delete_by_match_spec(table, match_spec)
   end
 
-  @spec delete_by_max_value(atom, any, list) :: integer | {:error, any}
-  def delete_by_max_value(table_name, max_value, opts \\ []) do
+  @spec delete_by_max_value(t, any, keyword) :: integer | {:error, any}
+  def delete_by_max_value(table, max_value, opts \\ []) do
     match_spec = BooleanMatchSpec.max_value(max_value, opts)
-    delete_by_match_spec(table_name, match_spec)
+    delete_by_match_spec(table, match_spec)
   end
 end
