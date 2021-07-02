@@ -5,7 +5,7 @@
 [![CI](https://github.com/mnishiguchi/dbkv/actions/workflows/ci.yml/badge.svg)](https://github.com/mnishiguchi/dbkv/actions/workflows/ci.yml)
 [![Hex](https://github.com/mnishiguchi/dbkv/actions/workflows/hex.yml/badge.svg)](https://github.com/mnishiguchi/dbkv/actions/workflows/hex.yml)
 
-`DBKV` is a disk-based embedded key-value store built on top of [`:dets`](https://erlang.org/doc/man/dets.html). Inspired by [CubDB](https://github.com/lucaong/cubdb)'s intuitive API.
+`DBKV` is a disk-based embedded key-value storage built on top of [`:dets`](https://erlang.org/doc/man/dets.html). Inspired by [CubDB](https://github.com/lucaong/cubdb)'s intuitive API.
 
 ## Usage
 
@@ -118,7 +118,7 @@ iex> DBKV.select_by_match_spec(t, match_spec)
 
 ### Argument Error
 
-When a table is not started, underlying `:dets` will raise an argument error. Please make sure that the table is started with a correct name.
+When a table is not open, underlying `:dets` will raise `ArgumentError`. Please make sure that the table is opened with a correct name.
 
 ```elixir
 iex> DBKV.get(:nonexistent_table, "temperature")
@@ -127,7 +127,7 @@ iex> DBKV.get(:nonexistent_table, "temperature")
     (dbkv 0.1.2) lib/dvkv.ex:78: DBKV.get/3
 ```
 
-### Using `:dets` functions
+### Use `:dets` functions
 
 `DBKV` is a thin wrapper of `:dets`. You can mix and match with any [`:dets` functions](https://erlang.org/doc/man/dets.html) if you wish.
 
