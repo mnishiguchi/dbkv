@@ -213,9 +213,15 @@ defmodule DBKV do
     select_by_match_spec(table, match_spec)
   end
 
-  @spec select_by_match_spec(t, list) :: list
-  def select_by_match_spec(table, match_spec) do
-    :dets.select(table, match_spec)
+  @doc """
+  Returns the results of applying `match_spec` to all or `n` entries stored in `table`.
+  """
+  @spec select_by_match_spec(t, list, non_neg_integer()) :: list
+  def select_by_match_spec(table, match_spec, n \\ :default) do
+    case :dets.select(table, match_spec, n) do
+      {list, _continuation} -> list
+      :"$end_of_table" -> []
+    end
   end
 
   @spec select_by_key_range(t, any, any, keyword) :: list

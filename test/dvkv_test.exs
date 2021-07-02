@@ -131,6 +131,7 @@ defmodule DBKVTest do
       end
 
     assert [{1, "b"}, {2, "c"}, {3, "d"}] == DBKV.select_by_match_spec(t, match_spec)
+    assert [{1, "b"}] == DBKV.select_by_match_spec(t, match_spec, 1)
   end
 
   test "select_by_key_range", %{table_name: t} do
