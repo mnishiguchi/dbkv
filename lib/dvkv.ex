@@ -97,6 +97,26 @@ defmodule DBKV do
   end
 
   #
+  # Counter
+  #
+
+  @doc """
+  Increment a number field by one.
+  """
+  @spec increment(t, any, number) :: number
+  def increment(table, key, by) do
+    :dets.update_counter(table, key, by)
+  end
+
+  @doc """
+  Decrement a number field by one.
+  """
+  @spec decrement(t, any, number) :: number
+  def decrement(table, key, by) do
+    :dets.update_counter(table, key, -by)
+  end
+
+  #
   # CRUD
   #
 
@@ -163,26 +183,6 @@ defmodule DBKV do
   end
 
   #
-  # Counter
-  #
-
-  @doc """
-  Increment a number field by one.
-  """
-  @spec increment(t, any, number) :: number
-  def increment(table, key, by) do
-    :dets.update_counter(table, key, by)
-  end
-
-  @doc """
-  Decrement a number field by one.
-  """
-  @spec decrement(t, any, number) :: number
-  def decrement(table, key, by) do
-    :dets.update_counter(table, key, -by)
-  end
-
-  #
   # Select
   #
 
@@ -224,36 +224,60 @@ defmodule DBKV do
     end
   end
 
+  @doc """
+  Returns a specified range of entries from `table`. By default, the range is inclusive. The range
+  boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
+  """
   @spec select_by_key_range(t, any, any, keyword) :: list
   def select_by_key_range(table, min_key, max_key, opts \\ []) do
     match_spec = FinderMatchSpec.key_range(min_key, max_key, opts)
     select_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Returns all entries from `table` where the key is greater than or equal to `min_key`.
+  The boundary can be excluded by setting `inclusive` to `false`.
+  """
   @spec select_by_min_key(t, any, keyword) :: list
   def select_by_min_key(table, min_key, inclusive \\ true) do
     match_spec = FinderMatchSpec.min_key(min_key, inclusive)
     select_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Returns all entries from `table` where the key is less than or equal to `max_key`.
+  The boundary can be excluded by setting `inclusive` to `false`.
+  """
   @spec select_by_max_key(t, any, keyword) :: list
   def select_by_max_key(table, max_key, inclusive \\ true) do
     match_spec = FinderMatchSpec.max_key(max_key, inclusive)
     select_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Returns a specified range of entries from `table`. By default, the range is inclusive.
+  The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
+  """
   @spec select_by_value_range(t, any, any, keyword) :: list
   def select_by_value_range(table, min_value, max_value, opts \\ []) do
     match_spec = FinderMatchSpec.value_range(min_value, max_value, opts)
     select_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Returns all entries from `table` where the value is greater than or equal to `min_value`.
+  The boundary can be excluded by setting `inclusive` to `false`.
+  """
   @spec select_by_min_value(t, any, keyword) :: list
   def select_by_min_value(table, min_value, inclusive \\ true) do
     match_spec = FinderMatchSpec.min_value(min_value, inclusive)
     select_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Returns all entries from `table` where the value is less than or equal to `max_value`.
+  The boundary can be excluded by setting `inclusive` to `false`.
+  """
   @spec select_by_max_value(t, any, keyword) :: list
   def select_by_max_value(table, max_value, inclusive \\ true) do
     match_spec = FinderMatchSpec.max_value(max_value, inclusive)
@@ -264,41 +288,71 @@ defmodule DBKV do
   # Select delete
   #
 
+  @doc """
+  Deletes each entry from `table` such that applying `match_spec` to the entry returns `true`.
+  Returns the number of deleted entries.
+  """
   @spec delete_by_match_spec(t, list) :: integer | {:error, any}
   def delete_by_match_spec(table, match_spec) do
     :dets.select_delete(table, match_spec)
   end
 
+  @doc """
+  Deletes entries from `table` where the key is with the specified range. By default, the range is
+  inclusive. The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive`
+  to `false`.
+  """
   @spec delete_by_key_range(t, any, any, keyword) :: integer | {:error, any}
   def delete_by_key_range(table, min_key, max_key, opts \\ []) do
     match_spec = BooleanMatchSpec.key_range(min_key, max_key, opts)
     delete_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Delete all entries from `table` where the key is greater than or equal to `min_key`.
+  The boundary can be excluded by setting `inclusive` to `false`.
+  """
   @spec delete_by_min_key(t, any, boolean) :: integer | {:error, any}
   def delete_by_min_key(table, min_key, inclusive \\ true) do
     match_spec = BooleanMatchSpec.min_key(min_key, inclusive)
     delete_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Delete all entries from `table` where the key is less than or equal to `max_key`.
+  The boundary can be excluded by setting `inclusive` to `false`.
+  """
   @spec delete_by_max_key(t, any, boolean) :: integer | {:error, any}
   def delete_by_max_key(table, max_key, inclusive \\ true) do
     match_spec = BooleanMatchSpec.max_key(max_key, inclusive)
     delete_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Deletes entries from `table` where the valye is with the specified range. By default, the range is
+  inclusive. The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive`
+  to `false`.
+  """
   @spec delete_by_value_range(t, any, any, keyword) :: integer | {:error, any}
   def delete_by_value_range(table, min_value, max_value, opts \\ []) do
     match_spec = BooleanMatchSpec.value_range(min_value, max_value, opts)
     delete_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Delete all entries from `table` where the value is greater than or equal to `min_value`.
+  The boundary can be excluded by setting `inclusive` to `false`.
+  """
   @spec delete_by_min_value(t, any, boolean) :: integer | {:error, any}
   def delete_by_min_value(table, min_value, inclusive \\ true) do
     match_spec = BooleanMatchSpec.min_value(min_value, inclusive)
     delete_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Delete all entries from `table` where the value is less than or equal to `max_value`.
+  The boundary can be excluded by setting `inclusive` to `false`.
+  """
   @spec delete_by_max_value(t, any, boolean) :: integer | {:error, any}
   def delete_by_max_value(table, max_value, inclusive \\ true) do
     match_spec = BooleanMatchSpec.max_value(max_value, inclusive)
