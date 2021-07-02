@@ -131,6 +131,7 @@ defmodule DBKV do
     case :dets.lookup(table, key) do
       [] -> default
       [{_key, value} | _rest] -> value
+      {:error, reason} -> {:error, reason}
     end
   end
 
@@ -164,6 +165,7 @@ defmodule DBKV do
   @spec update(t, any, any, (any -> any)) :: :ok | {:error, any}
   def update(table, key, default, fun) when is_atom(table) and is_function(fun) do
     case get(table, key) do
+      {:error, reason} -> {:error, reason}
       nil -> put(table, key, default)
       value -> put(table, key, fun.(value))
     end

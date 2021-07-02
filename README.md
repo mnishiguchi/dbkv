@@ -151,10 +151,6 @@ In such a case, re-opening the table will fix it.
 iex> DBKV.init_table(t, ["invalid object list"])
 {:error, :invalid_objects_list}
 
-iex> DBKV.get(t, :a)
-** (CaseClauseError) no case clause matching: {:error, :invalid_objects_list}
-    (dbkv 0.2.0) lib/dvkv.ex:131: DBKV.get/3
-
 iex> DBKV.close(t)
 {:error, :invalid_objects_list}
 
