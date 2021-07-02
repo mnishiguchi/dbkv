@@ -192,7 +192,7 @@ defmodule DBKV do
   @doc """
   Returns all entries from `table`.
   """
-  @spec all(t) :: list
+  @spec all(t) :: list | {:error, any}
   def all(table) when is_atom(table) do
     match_spec = FinderMatchSpec.all()
     select_by_match_spec(table, match_spec)
@@ -201,7 +201,7 @@ defmodule DBKV do
   @doc """
   Returns all `keys` from `table`.
   """
-  @spec keys(t) :: list
+  @spec keys(t) :: list | {:error, any}
   def keys(table) when is_atom(table) do
     match_spec = FinderMatchSpec.keys()
     select_by_match_spec(table, match_spec)
@@ -210,7 +210,7 @@ defmodule DBKV do
   @doc """
   Returns all `values` from `table`.
   """
-  @spec values(t) :: list
+  @spec values(t) :: list | {:error, any}
   def values(table) when is_atom(table) do
     match_spec = FinderMatchSpec.values()
     select_by_match_spec(table, match_spec)
@@ -219,9 +219,10 @@ defmodule DBKV do
   @doc """
   Returns the results of applying `match_spec` to all or `n` entries stored in `table`.
   """
-  @spec select_by_match_spec(t, list, non_neg_integer()) :: list
+  @spec select_by_match_spec(t, list, non_neg_integer()) :: list | {:error, any}
   def select_by_match_spec(table, match_spec, n \\ :default) when is_atom(table) do
     case :dets.select(table, match_spec, n) do
+      {:error, reason} -> {:error, reason}
       {list, _continuation} -> list
       :"$end_of_table" -> []
     end
@@ -231,7 +232,7 @@ defmodule DBKV do
   Returns a specified range of entries from `table`. By default, the range is inclusive. The range
   boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
   """
-  @spec select_by_key_range(t, any, any, range_options) :: list
+  @spec select_by_key_range(t, any, any, range_options) :: list | {:error, any}
   def select_by_key_range(table, min_key, max_key, opts \\ []) when is_atom(table) do
     match_spec = FinderMatchSpec.key_range(min_key, max_key, opts)
     select_by_match_spec(table, match_spec)
@@ -241,7 +242,7 @@ defmodule DBKV do
   Returns all entries from `table` where the key is greater than or equal to `min_key`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_min_key(t, any, boolean) :: list
+  @spec select_by_min_key(t, any, boolean) :: list | {:error, any}
   def select_by_min_key(table, min_key, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.min_key(min_key, inclusive)
     select_by_match_spec(table, match_spec)
@@ -251,7 +252,7 @@ defmodule DBKV do
   Returns all entries from `table` where the key is less than or equal to `max_key`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_max_key(t, any, boolean) :: list
+  @spec select_by_max_key(t, any, boolean) :: list | {:error, any}
   def select_by_max_key(table, max_key, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.max_key(max_key, inclusive)
     select_by_match_spec(table, match_spec)
@@ -261,7 +262,7 @@ defmodule DBKV do
   Returns a specified range of entries from `table`. By default, the range is inclusive.
   The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
   """
-  @spec select_by_value_range(t, any, any, range_options) :: list
+  @spec select_by_value_range(t, any, any, range_options) :: list | {:error, any}
   def select_by_value_range(table, min_value, max_value, opts \\ []) when is_atom(table) do
     match_spec = FinderMatchSpec.value_range(min_value, max_value, opts)
     select_by_match_spec(table, match_spec)
@@ -271,7 +272,7 @@ defmodule DBKV do
   Returns all entries from `table` where the value is greater than or equal to `min_value`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_min_value(t, any, boolean) :: list
+  @spec select_by_min_value(t, any, boolean) :: list | {:error, any}
   def select_by_min_value(table, min_value, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.min_value(min_value, inclusive)
     select_by_match_spec(table, match_spec)
@@ -281,7 +282,7 @@ defmodule DBKV do
   Returns all entries from `table` where the value is less than or equal to `max_value`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_max_value(t, any, boolean) :: list
+  @spec select_by_max_value(t, any, boolean) :: list | {:error, any}
   def select_by_max_value(table, max_value, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.max_value(max_value, inclusive)
     select_by_match_spec(table, match_spec)
