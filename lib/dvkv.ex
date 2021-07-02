@@ -199,6 +199,14 @@ defmodule DBKV do
   end
 
   @doc """
+  Applies `fun` to each entry stored in `table` in some unspecified order.
+  """
+  @spec all(t, (key :: any, value :: any -> any)) :: list | {:error, any}
+  def all(table, fun) when is_atom(table) and is_function(fun) do
+    :dets.traverse(table, fn {k, v} -> {:continue, fun.(k, v)} end)
+  end
+
+  @doc """
   Returns all `keys` from `table`.
   """
   @spec keys(t) :: list | {:error, any}

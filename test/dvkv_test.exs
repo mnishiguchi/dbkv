@@ -101,9 +101,15 @@ defmodule DBKVTest do
     assert 0 == DBKV.decrement(t, "count", 7)
   end
 
-  test "all", %{table_name: t} do
+  test "all/1", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert_equal([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.all(t))
+  end
+
+  test "all/2", %{table_name: t} do
+    :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
+    # This may fail because dets does not guarantee the order.
+    assert_equal(["0--a", "1--b", "2--c"], DBKV.all(t, fn k, v -> "#{k}--#{v}" end))
   end
 
   test "keys", %{table_name: t} do
@@ -125,7 +131,6 @@ defmodule DBKVTest do
       end
 
     assert_equal([{1, "b"}, {2, "c"}, {3, "d"}], DBKV.select_by_match_spec(t, match_spec))
-
     # This may fail because dets does not guarantee the order.
     assert_equal([{3, "d"}], DBKV.select_by_match_spec(t, match_spec, 1))
   end
@@ -240,7 +245,9 @@ defmodule DBKVTest do
     assert 2 == DBKV.delete_by_value_range(t, "b", "d", max_inclusive: false)
 
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
-    assert 1 == DBKV.delete_by_value_range(t, "b", "d", min_inclusive: false, max_inclusive: false)
+
+    assert 1 ==
+             DBKV.delete_by_value_range(t, "b", "d", min_inclusive: false, max_inclusive: false)
   end
 
   test "delete_by_min_value", %{table_name: t} do
