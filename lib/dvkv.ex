@@ -57,7 +57,6 @@ defmodule DBKV do
     table in :dets.all()
   end
 
-
   @doc """
   Returns the size of the collection in `table`.
   """
