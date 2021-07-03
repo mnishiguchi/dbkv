@@ -139,6 +139,11 @@ defmodule DBKVTest do
     assert_equal([{1, "b"}, {2, "c"}, {3, "d"}], DBKV.select_by_key_range(t, 1, 3))
 
     assert_equal(
+      [{2, "c"}, {3, "d"}],
+      DBKV.select_by_key_range(t, 1, 3, min_inclusive: false)
+    )
+
+    assert_equal(
       [{1, "b"}, {2, "c"}],
       DBKV.select_by_key_range(t, 1, 3, max_inclusive: false)
     )
@@ -223,10 +228,13 @@ defmodule DBKVTest do
     assert 2 == DBKV.size(t)
 
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
+    assert 2 == DBKV.delete_by_key_range(t, 2, 4, min_inclusive: false)
+
+    :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
     assert 2 == DBKV.delete_by_key_range(t, 1, 3, max_inclusive: false)
 
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
-    assert 1 == DBKV.delete_by_key_range(t, 1, 3, min_inclusive: false, max_inclusive: false)
+    assert 1 == DBKV.delete_by_key_range(t, 0, 2, min_inclusive: false, max_inclusive: false)
   end
 
   test "delete_by_min_key", %{table_name: t} do
