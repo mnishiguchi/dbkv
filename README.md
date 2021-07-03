@@ -51,10 +51,10 @@ iex> DBKV.put_new(t, "greeting", "Hello")
 iex> DBKV.get(t, "greeting")
 "Hi"
 
-iex> DBKV.put_new(t, "temperature", 32)
+iex> DBKV.put_new(t, :temperature, 32)
 :ok
 
-iex> DBKV.get(t, "temperature")
+iex> DBKV.get(t, :temperature)
 32
 ```
 
@@ -67,10 +67,10 @@ iex> DBKV.update(t, "greeting", "default", &(&1 <> "!!!"))
 iex> DBKV.get(t, "greeting")
 "Hi!!!"
 
-iex> DBKV.update(t, "language", "default", &(&1 <> "!!!"))
+iex> DBKV.update(t, 123, "default", &(&1 <> "!!!"))
 :ok
 
-iex> DBKV.get(t, "language")
+iex> DBKV.get(t, 123)
 "default"
 ```
 
@@ -94,11 +94,18 @@ iex> DBKV.init_table(t, [{:a, 0}, {:b, 1}, {:c, 2}, {:d, 3}, {:e, 4}])
 
 ### Select a range of entries from the table
 
-**By key ranges**
+**By key range**
 
 ```elixir
 iex> DBKV.select_by_key_range(t, :b, :d)
 [b: 1, c: 2, d: 3]
+```
+
+**By value range**
+
+```elixir
+iex> DBKV.select_by_value_range(t, 2, 3)
+[c: 2, d: 3]
 ```
 
 **By [match spec](https://erlang.org/doc/apps/erts/match_spec.html)**
@@ -139,9 +146,9 @@ When a table is not open, a function call results in `ArgumentError`.
 Make sure that the table is opened with a correct name.
 
 ```elixir
-iex> DBKV.get(:nonexistent_table, "temperature")
+iex> DBKV.get(:nonexistent_table, :temperature)
 ** (ArgumentError) argument error
-    (stdlib 3.15.1) dets.erl:1259: :dets.lookup(:nonexistent_table, "temperature")
+    (stdlib 3.15.1) dets.erl:1259: :dets.lookup(:nonexistent_table, :temperature)
     (dbkv 0.2.0) lib/dvkv.ex:131: DBKV.get/3
 ```
 

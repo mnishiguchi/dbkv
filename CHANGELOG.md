@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2021-07-03
+
+**Added**
+- Improve guard for `init_table/1` so that it rejects malformed input
+
 ## [0.2.2] - 2021-07-03
 
 **Added**
@@ -66,7 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial release
 
-[Unreleased]: https://github.com/mnishiguchi/dbkv/compare/v0.2.2...HEAD
+[Unreleased]: https://github.com/mnishiguchi/dbkv/compare/v0.2.3...HEAD
+[0.2.3]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.2.3
 [0.2.2]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.2.2
 [0.2.1]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.2.1
 [0.2.0]: https://github.com/mnishiguchi/dbkv/releases/tag/v0.2.0
