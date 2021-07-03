@@ -80,7 +80,6 @@ defmodule DBKVTest do
 
   test "delete_all", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
-
     :ok = DBKV.delete_all(t)
     assert 0 == DBKV.size(t)
   end

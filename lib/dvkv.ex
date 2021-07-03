@@ -94,7 +94,7 @@ defmodule DBKV do
   @doc """
   Replaces the existing entries of `table` with `entries`.
   """
-  @spec init_table(t, [entry]) :: {any, any}
+  @spec init_table(t, [entry]) :: :ok | {:error, any}
   def init_table(table, entries) when is_atom(table) and is_list(entries) do
     :dets.init_table(table, fn _ -> {entries, fn _ -> :end_of_input end} end)
   end
@@ -162,7 +162,7 @@ defmodule DBKV do
   used as the updated value of `key`. If `key` is not present in `table`, `default` is inserted as
   the value of `key`. The default value will not be passed through the update function.
   """
-  @spec update(t, any, any, (any -> any)) :: :ok | {:error, any}
+  @spec update(t, any, any, (value :: any -> any)) :: :ok | {:error, any}
   def update(table, key, default, fun) when is_atom(table) and is_function(fun) do
     case get(table, key) do
       {:error, reason} -> {:error, reason}
@@ -194,7 +194,7 @@ defmodule DBKV do
   @doc """
   Returns all entries from `table`.
   """
-  @spec all(t) :: list | {:error, any}
+  @spec all(t) :: [entry] | {:error, any}
   def all(table) when is_atom(table) do
     match_spec = FinderMatchSpec.all()
     select_by_match_spec(table, match_spec)
@@ -203,7 +203,7 @@ defmodule DBKV do
   @doc """
   Applies `fun` to each entry stored in `table` in some unspecified order.
   """
-  @spec all(t, (key :: any, value :: any -> any)) :: list | {:error, any}
+  @spec all(t, (key :: any, value :: any -> any)) :: [any] | {:error, any}
   def all(table, fun) when is_atom(table) and is_function(fun) do
     :dets.traverse(table, fn {k, v} -> {:continue, fun.(k, v)} end)
   end
@@ -211,7 +211,7 @@ defmodule DBKV do
   @doc """
   Returns all keys from `table`.
   """
-  @spec keys(t) :: list | {:error, any}
+  @spec keys(t) :: [any] | {:error, any}
   def keys(table) when is_atom(table) do
     match_spec = FinderMatchSpec.keys()
     select_by_match_spec(table, match_spec)
@@ -220,7 +220,7 @@ defmodule DBKV do
   @doc """
   Returns all values from `table`.
   """
-  @spec values(t) :: list | {:error, any}
+  @spec values(t) :: [any] | {:error, any}
   def values(table) when is_atom(table) do
     match_spec = FinderMatchSpec.values()
     select_by_match_spec(table, match_spec)
@@ -229,7 +229,7 @@ defmodule DBKV do
   @doc """
   Returns the results of applying `match_spec` to all or `n` entries stored in `table`.
   """
-  @spec select_by_match_spec(t, list, non_neg_integer()) :: list | {:error, any}
+  @spec select_by_match_spec(t, match_spec, non_neg_integer()) :: [any] | {:error, any}
   def select_by_match_spec(table, match_spec, n \\ :default) when is_atom(table) do
     case :dets.select(table, match_spec, n) do
       {:error, reason} -> {:error, reason}
@@ -242,7 +242,7 @@ defmodule DBKV do
   Returns a specified range of entries from `table`. By default, the range is inclusive. The range
   boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
   """
-  @spec select_by_key_range(t, any, any, range_options) :: list | {:error, any}
+  @spec select_by_key_range(t, any, any, range_options) :: [entry] | {:error, any}
   def select_by_key_range(table, min_key, max_key, opts \\ []) when is_atom(table) do
     match_spec = FinderMatchSpec.key_range(min_key, max_key, opts)
     select_by_match_spec(table, match_spec)
@@ -252,7 +252,7 @@ defmodule DBKV do
   Returns all entries from `table` where the key is greater than or equal to `min_key`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_min_key(t, any, boolean) :: list | {:error, any}
+  @spec select_by_min_key(t, any, boolean) :: [entry] | {:error, any}
   def select_by_min_key(table, min_key, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.min_key(min_key, inclusive)
     select_by_match_spec(table, match_spec)
@@ -262,7 +262,7 @@ defmodule DBKV do
   Returns all entries from `table` where the key is less than or equal to `max_key`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_max_key(t, any, boolean) :: list | {:error, any}
+  @spec select_by_max_key(t, any, boolean) :: [entry] | {:error, any}
   def select_by_max_key(table, max_key, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.max_key(max_key, inclusive)
     select_by_match_spec(table, match_spec)
@@ -272,7 +272,7 @@ defmodule DBKV do
   Returns a specified range of entries from `table`. By default, the range is inclusive.
   The range boundaries can be excluded by setting `:min_inclusive` or `:max_inclusive` to `false`.
   """
-  @spec select_by_value_range(t, any, any, range_options) :: list | {:error, any}
+  @spec select_by_value_range(t, any, any, range_options) :: [any] | {:error, any}
   def select_by_value_range(table, min_value, max_value, opts \\ []) when is_atom(table) do
     match_spec = FinderMatchSpec.value_range(min_value, max_value, opts)
     select_by_match_spec(table, match_spec)
@@ -282,7 +282,7 @@ defmodule DBKV do
   Returns all entries from `table` where the value is greater than or equal to `min_value`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_min_value(t, any, boolean) :: list | {:error, any}
+  @spec select_by_min_value(t, any, boolean) :: [entry] | {:error, any}
   def select_by_min_value(table, min_value, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.min_value(min_value, inclusive)
     select_by_match_spec(table, match_spec)
@@ -292,7 +292,7 @@ defmodule DBKV do
   Returns all entries from `table` where the value is less than or equal to `max_value`.
   The boundary can be excluded by setting `inclusive` to `false`.
   """
-  @spec select_by_max_value(t, any, boolean) :: list | {:error, any}
+  @spec select_by_max_value(t, any, boolean) :: [entry] | {:error, any}
   def select_by_max_value(table, max_value, inclusive \\ true) when is_atom(table) do
     match_spec = FinderMatchSpec.max_value(max_value, inclusive)
     select_by_match_spec(table, match_spec)
@@ -301,7 +301,7 @@ defmodule DBKV do
   @doc """
   Returns all entries from `table` where the value is equal to `value`.
   """
-  @spec select_by_value(t, any) :: list | {:error, any}
+  @spec select_by_value(t, any) :: [entry] | {:error, any}
   def select_by_value(table, value) when is_atom(table) do
     match_spec = FinderMatchSpec.value_range(value, value)
     select_by_match_spec(table, match_spec)
@@ -315,7 +315,7 @@ defmodule DBKV do
   Deletes each entry from `table` such that applying `match_spec` to the entry returns `true`.
   Returns the number of deleted entries.
   """
-  @spec delete_by_match_spec(t, list) :: integer | {:error, any}
+  @spec delete_by_match_spec(t, match_spec) :: integer | {:error, any}
   def delete_by_match_spec(table, match_spec) when is_atom(table) do
     :dets.select_delete(table, match_spec)
   end
