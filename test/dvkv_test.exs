@@ -199,6 +199,13 @@ defmodule DBKVTest do
     assert_equal([], DBKV.select_by_max_value(t, "#"))
   end
 
+  test "select_by_value", %{table_name: t} do
+    :ok = DBKV.init_table(t, a: 0, b: 1, c: 1, d: 0)
+    assert_equal([{:a, 0}, {:d, 0}], DBKV.select_by_value(t, 0))
+    assert_equal([{:b, 1}, {:c, 1}], DBKV.select_by_value(t, 1))
+    assert_equal([], DBKV.select_by_value(t, 2))
+  end
+
   test "delete_by_match_spec", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
 
@@ -271,5 +278,16 @@ defmodule DBKVTest do
 
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert 1 == DBKV.delete_by_max_value(t, "b", false)
+  end
+
+  test "delete_by_value", %{table_name: t} do
+    :ok = DBKV.init_table(t, a: 0, b: 1, c: 0)
+    assert 2 == DBKV.delete_by_value(t, 0)
+
+    :ok = DBKV.init_table(t, a: 0, b: 1, c: 0)
+    assert 1 == DBKV.delete_by_value(t, 1)
+
+    :ok = DBKV.init_table(t, a: 0, b: 1, c: 0)
+    assert 0 == DBKV.delete_by_value(t, 2)
   end
 end

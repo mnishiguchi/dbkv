@@ -298,6 +298,15 @@ defmodule DBKV do
     select_by_match_spec(table, match_spec)
   end
 
+  @doc """
+  Returns all entries from `table` where the value is equal to `value`.
+  """
+  @spec select_by_value(t, any) :: list | {:error, any}
+  def select_by_value(table, value) when is_atom(table) do
+    match_spec = FinderMatchSpec.value_range(value, value)
+    select_by_match_spec(table, match_spec)
+  end
+
   #
   # Select delete
   #
@@ -370,6 +379,15 @@ defmodule DBKV do
   @spec delete_by_max_value(t, any, boolean) :: integer | {:error, any}
   def delete_by_max_value(table, max_value, inclusive \\ true) when is_atom(table) do
     match_spec = BooleanMatchSpec.max_value(max_value, inclusive)
+    delete_by_match_spec(table, match_spec)
+  end
+
+  @doc """
+  Delete all entries from `table` where the value is equal to `value`.
+  """
+  @spec delete_by_value(t, any) :: integer | {:error, any}
+  def delete_by_value(table, value) when is_atom(table) do
+    match_spec = BooleanMatchSpec.value_range(value, value)
     delete_by_match_spec(table, match_spec)
   end
 end
