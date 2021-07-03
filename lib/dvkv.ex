@@ -95,7 +95,11 @@ defmodule DBKV do
   Replaces the existing entries of `table` with `entries`.
   """
   @spec init_table(t, [entry]) :: :ok | {:error, any}
-  def init_table(table, entries) when is_atom(table) and is_list(entries) do
+  def init_table(table, []) when is_atom(table) do
+    :dets.init_table(table, fn _ -> {[], fn _ -> :end_of_input end} end)
+  end
+
+  def init_table(table, [entry | _] = entries) when is_atom(table) and tuple_size(entry) == 2 do
     :dets.init_table(table, fn _ -> {entries, fn _ -> :end_of_input end} end)
   end
 

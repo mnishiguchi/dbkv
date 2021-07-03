@@ -145,26 +145,6 @@ iex> DBKV.get(:nonexistent_table, "temperature")
     (dbkv 0.2.0) lib/dvkv.ex:131: DBKV.get/3
 ```
 
-### `:invalid_objects_list`
-
-When a table is improperly initialized, a function returns `{:error, :invalid_objects_list}`.
-In such a case, re-opening the table will repair the database file with zero entry.
-
-```elixir
-iex> DBKV.init_table(t, ["invalid entries", 0, 0])
-{:error, :invalid_objects_list}
-
-iex> DBKV.close(t)
-{:error, :invalid_objects_list}
-
-iex> {:ok, t} = DBKV.open(name: :my_table, data_dir: "tmp")
-dets: file "tmp/my_table.db" not properly closed, repairing ...
-{:ok, :my_table}
-
-iex> DBKV.all(t)
-[]
-```
-
 ## Installation
 
 `DBKV` can be installed by adding `dbkv` to your list of dependencies in mix.exs:
