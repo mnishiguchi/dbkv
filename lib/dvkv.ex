@@ -82,10 +82,7 @@ defmodule DBKV do
   """
   @spec has_key?(t, any) :: boolean
   def has_key?(table, key) when is_atom(table) do
-    case :dets.member(table, key) do
-      true -> true
-      _ -> false
-    end
+    :dets.member(table, key)
   end
 
   @doc """
