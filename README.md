@@ -24,6 +24,9 @@ iex> {:ok, t} = DBKV.open(name: :my_table, data_dir: "tmp")
 
 iex> DBKV.open?(t)
 true
+
+iex> DBKV.filename(t)
+'tmp/my_table.db'
 ```
 
 You could omit `name` and `data_dir` options. In such a case, they will default to `DBKV` and `"tmp"` respectively.
@@ -124,8 +127,7 @@ iex> DBKV.select_by_match_spec(t, match_spec)
 
 ### Use `:dets` functions
 
-`DBKV` is a thin wrapper of dets. You could mix and match with any
-[dets functions](https://erlang.org/doc/man/dets.html) if you wish.
+You could mix and match with any [dets functions](https://erlang.org/doc/man/dets.html) if you wish.
 
 ```elixir
 iex> :dets.info(t)
