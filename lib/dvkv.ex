@@ -78,6 +78,14 @@ defmodule DBKV do
   end
 
   @doc """
+  Returns the name of the file where `table` is stored.
+  """
+  @spec filename(t) :: charlist() | :undefined
+  def filename(table) when is_atom(table) do
+    :dets.info(table, :filename)
+  end
+
+  @doc """
   Returns whether the given `key` exists in `table`.
   """
   @spec has_key?(t, any) :: boolean

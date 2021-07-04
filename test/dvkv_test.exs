@@ -39,6 +39,7 @@ defmodule DBKVTest do
            } = DBKV.info(t)
 
     assert DBKV.open?(t)
+    assert 'tmp/dbkv_test.db' == DBKV.filename(t)
 
     # Insert
     :ok = DBKV.put(t, :word, "Hi")
