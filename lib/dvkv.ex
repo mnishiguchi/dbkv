@@ -50,6 +50,7 @@ defmodule DBKV do
     :dets.close(table)
   end
 
+  @deprecated "Use :dets.info/1 instead"
   @doc """
   Returns information about `table`.
   """

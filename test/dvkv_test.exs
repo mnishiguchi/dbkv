@@ -30,14 +30,6 @@ defmodule DBKVTest do
   end
 
   test "basic use", %{table_name: t} do
-    assert %{
-             file_size: _,
-             filename: 'tmp/dbkv_test.db',
-             keypos: _,
-             size: _,
-             type: :set
-           } = DBKV.info(t)
-
     assert DBKV.open?(t)
     assert 'tmp/dbkv_test.db' == DBKV.filename(t)
 
