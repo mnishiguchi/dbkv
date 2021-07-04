@@ -74,10 +74,7 @@ defmodule DBKV do
   """
   @spec size(t) :: integer | :undefined
   def size(table) when is_atom(table) do
-    case :dets.info(table, :size) do
-      :undefined -> :undefined
-      size -> size
-    end
+    :dets.info(table, :size)
   end
 
   @doc """
