@@ -178,3 +178,6 @@ iex> Mix.install([{:dbkv, "~> 0.2"}])
 
 - [CubDB](https://github.com/lucaong/cubdb)
 - [dets](https://erlang.org/doc/man/dets.html)
+- etc
+
+There was a good discussion about Erlang/Elixir key-value stores in this [Elixir Forum thread](https://elixirforum.com/t/cubdb-a-pure-elixir-embedded-key-value-database/23397?u=mnishiguchi).
