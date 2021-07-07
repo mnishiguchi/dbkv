@@ -290,4 +290,14 @@ defmodule DBKVTest do
     :ok = DBKV.init_table(t, a: 0, b: 1, c: 0)
     assert 0 == DBKV.delete_by_value(t, 2)
   end
+
+  test "reduce/3", %{table_name: t} do
+    :ok = DBKV.init_table(t, a: 1, b: 3, c: 5)
+    assert [5, :c, 3, :b, 1, :a] == DBKV.reduce(t, [], fn {k, v}, acc -> [v] ++ [k] ++ acc end)
+  end
+
+  test "foldl/3", %{table_name: t} do
+    :ok = DBKV.init_table(t, a: 1, b: 3, c: 5)
+    assert 9 == DBKV.foldl(t, 0, fn {_k, v}, acc -> acc + v end)
+  end
 end
