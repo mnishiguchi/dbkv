@@ -403,18 +403,12 @@ defmodule DBKV do
   #
 
   @doc """
-  Calls Function on successive elements of `table` together with an extra argument `acc`.
-  The table elements are traversed in unspecified order. `reducer` must return a new accumulator that is passed to the next call.
-  `acc` is returned if the table is empty.
-  """
-  @spec foldl(t, any, (entry, any -> any)) :: any
-  def foldl(table, acc, reducer) when is_atom(table) and is_function(reducer) do
-    :dets.foldl(reducer, acc, table)
-  end
-
-  @doc """
-  Alias for `foldl/3`
+  Calls Function on successive elements of `table` together with an extra argument `acc`. The table
+  elements are traversed in unspecified order. `reducer` must return a new accumulator that is
+  passed to the next call. `acc` is returned if the table is empty.
   """
   @spec reduce(t, any, (entry, any -> any)) :: any
-  defdelegate reduce(table, acc, reducer), to: __MODULE__, as: :foldl
+  def reduce(table, acc, reducer) when is_atom(table) and is_function(reducer) do
+    :dets.foldl(reducer, acc, table)
+  end
 end
