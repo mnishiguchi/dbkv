@@ -5,11 +5,11 @@ defmodule DBKVTest do
   require Ex2ms
 
   # Checks equality ignoring the order.
-  defp assert_equal(one, other) do
+  defp equal?(one, other) do
     case one do
-      [{_k, _v}] -> assert Enum.into(one, %{}) == Enum.into(other, %{})
-      [{_k, _v} | _more] -> assert Enum.into(one, %{}) == Enum.into(other, %{})
-      list when is_list(list) -> assert Enum.sort(one) == Enum.sort(other)
+      [{_k, _v}] -> assert MapSet.new(one) == MapSet.new(other)
+      non_keyword_list when is_list(non_keyword_list) -> assert Enum.sort(one) == Enum.sort(other)
+      _ -> one == other
     end
   end
 
@@ -95,23 +95,22 @@ defmodule DBKVTest do
 
   test "all/1", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
-    assert_equal([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.all(t))
+    assert equal?([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.all(t))
   end
 
   test "all/2", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
-    # This may fail because dets does not guarantee the order.
-    assert_equal(["0--a", "1--b", "2--c"], DBKV.all(t, fn k, v -> "#{k}--#{v}" end))
+    assert equal?(["0--a", "1--b", "2--c"], DBKV.all(t, fn k, v -> "#{k}--#{v}" end))
   end
 
   test "keys", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
-    assert_equal([0, 1, 2], DBKV.keys(t))
+    assert equal?([0, 1, 2], DBKV.keys(t))
   end
 
   test "values", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
-    assert_equal(["a", "b", "c"], DBKV.values(t))
+    assert equal?(["a", "b", "c"], DBKV.values(t))
   end
 
   test "select_by_match_spec", %{table_name: t} do
@@ -122,85 +121,85 @@ defmodule DBKVTest do
         {k, v} = kv when 1 <= k and k <= 3 -> kv
       end
 
-    assert_equal([{1, "b"}, {2, "c"}, {3, "d"}], DBKV.select_by_match_spec(t, match_spec))
+    assert equal?([{1, "b"}, {2, "c"}, {3, "d"}], DBKV.select_by_match_spec(t, match_spec))
     # This may fail because dets does not guarantee the order.
-    assert_equal([{3, "d"}], DBKV.select_by_match_spec(t, match_spec, 1))
+    assert equal?([{3, "d"}], DBKV.select_by_match_spec(t, match_spec, 1))
   end
 
   test "select_by_key_range", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
-    assert_equal([{1, "b"}, {2, "c"}, {3, "d"}], DBKV.select_by_key_range(t, 1, 3))
+    assert equal?([{1, "b"}, {2, "c"}, {3, "d"}], DBKV.select_by_key_range(t, 1, 3))
 
-    assert_equal(
-      [{2, "c"}, {3, "d"}],
-      DBKV.select_by_key_range(t, 1, 3, min_inclusive: false)
-    )
+    assert equal?(
+             [{2, "c"}, {3, "d"}],
+             DBKV.select_by_key_range(t, 1, 3, min_inclusive: false)
+           )
 
-    assert_equal(
-      [{1, "b"}, {2, "c"}],
-      DBKV.select_by_key_range(t, 1, 3, max_inclusive: false)
-    )
+    assert equal?(
+             [{1, "b"}, {2, "c"}],
+             DBKV.select_by_key_range(t, 1, 3, max_inclusive: false)
+           )
 
-    assert_equal(
-      [{2, "c"}],
-      DBKV.select_by_key_range(t, 1, 3, min_inclusive: false, max_inclusive: false)
-    )
+    assert equal?(
+             [{2, "c"}],
+             DBKV.select_by_key_range(t, 1, 3, min_inclusive: false, max_inclusive: false)
+           )
 
-    assert_equal([], DBKV.select_by_key_range(t, 10, 20))
+    assert equal?([], DBKV.select_by_key_range(t, 10, 20))
   end
 
   test "select_by_min_key", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
-    assert_equal([{2, "c"}, {3, "d"}, {4, "e"}], DBKV.select_by_min_key(t, 2))
-    assert_equal([], DBKV.select_by_min_key(t, 10))
+    assert equal?([{2, "c"}, {3, "d"}, {4, "e"}], DBKV.select_by_min_key(t, 2))
+    assert equal?([], DBKV.select_by_min_key(t, 10))
   end
 
   test "select_by_max_key", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
-    assert_equal([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.select_by_max_key(t, 2))
-    assert_equal([{0, "a"}, {1, "b"}], DBKV.select_by_max_key(t, 2, false))
-    assert_equal([], DBKV.select_by_max_key(t, -1))
+    assert equal?([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.select_by_max_key(t, 2))
+    assert equal?([{0, "a"}, {1, "b"}], DBKV.select_by_max_key(t, 2, false))
+    assert equal?([], DBKV.select_by_max_key(t, -1))
   end
 
   test "select_by_value_range", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
 
-    assert_equal(
-      [{1, "b"}, {2, "c"}, {3, "d"}],
-      DBKV.select_by_value_range(t, "b", "d")
-    )
+    assert equal?(
+             [{1, "b"}, {2, "c"}, {3, "d"}],
+             DBKV.select_by_value_range(t, "b", "d")
+           )
 
-    assert_equal(
-      [{1, "b"}, {2, "c"}],
-      DBKV.select_by_value_range(t, "b", "d", max_inclusive: false)
-    )
+    assert equal?(
+             [{1, "b"}, {2, "c"}],
+             DBKV.select_by_value_range(t, "b", "d", max_inclusive: false)
+           )
 
-    assert_equal([], DBKV.select_by_value_range(t, "v", "z"))
+    assert equal?([], DBKV.select_by_value_range(t, "v", "z"))
   end
 
   test "select_by_min_value", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
-    assert_equal([{2, "c"}, {3, "d"}, {4, "e"}], DBKV.select_by_min_value(t, "c"))
-    assert_equal([], DBKV.select_by_min_value(t, "v"))
+    assert equal?([{2, "c"}, {3, "d"}, {4, "e"}], DBKV.select_by_min_value(t, "c"))
+    assert equal?([], DBKV.select_by_min_value(t, "v"))
   end
 
   test "select_by_max_value", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
-    assert_equal([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.select_by_max_value(t, "c"))
+    assert equal?([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.select_by_max_value(t, "c"))
 
-    assert_equal(
-      [{0, "a"}, {1, "b"}],
-      DBKV.select_by_max_value(t, "c", false)
-    )
+    assert equal?(
+             [{0, "a"}, {1, "b"}],
+             DBKV.select_by_max_value(t, "c", false)
+           )
 
-    assert_equal([], DBKV.select_by_max_value(t, "#"))
+    assert equal?([], DBKV.select_by_max_value(t, "#"))
   end
 
   test "select_by_value", %{table_name: t} do
     :ok = DBKV.init_table(t, a: 0, b: 1, c: 1, d: 0)
-    assert_equal([{:a, 0}, {:d, 0}], DBKV.select_by_value(t, 0))
-    assert_equal([{:b, 1}, {:c, 1}], DBKV.select_by_value(t, 1))
-    assert_equal([], DBKV.select_by_value(t, 2))
+    assert equal?([{:a, 0}, {:d, 0}], DBKV.select_by_value(t, 0))
+    assert equal?([{:b, 1}, {:c, 1}], DBKV.select_by_value(t, 1))
+    assert equal?([], DBKV.select_by_value(t, 2))
   end
 
   test "delete_by_match_spec", %{table_name: t} do
@@ -293,7 +292,11 @@ defmodule DBKVTest do
 
   test "reduce/3", %{table_name: t} do
     :ok = DBKV.init_table(t, a: 1, b: 3, c: 5)
-    assert [5, :c, 3, :b, 1, :a] == DBKV.reduce(t, [], fn {k, v}, acc -> [v] ++ [k] ++ acc end)
+
+    assert equal?(
+             [5, :c, 3, :b, 1, :a],
+             DBKV.reduce(t, [], fn {k, v}, acc -> [v] ++ [k] ++ acc end)
+           )
   end
 
   test "foldl/3", %{table_name: t} do
