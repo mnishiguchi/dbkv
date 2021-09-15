@@ -1,5 +1,4 @@
 defmodule DBKVTest do
-  # We cannot run this test async because the database file is global.
   use ExUnit.Case
 
   require Ex2ms
@@ -13,25 +12,23 @@ defmodule DBKVTest do
     end
   end
 
-  setup do
+  setup context do
     table_name = :dbkv_test
-    {:ok, ^table_name} = DBKV.open(name: table_name, data_dir: "tmp")
-
-    on_exit(fn ->
-      File.rm("tmp/dbkv_test.db")
-    end)
+    {:ok, ^table_name} = DBKV.open(name: table_name, data_dir: context.tmp_dir)
 
     %{table_name: table_name}
   end
 
+  @tag :tmp_dir
   test "when table not exists" do
     assert_raise ArgumentError, fn -> DBKV.get(:non_existent_table, 0) end
     assert_raise ArgumentError, fn -> DBKV.put(:non_existent_table, 0, 0) end
   end
 
-  test "basic use", %{table_name: t} do
+  @tag :tmp_dir
+  test "basic use", %{tmp_dir: tmp_dir, table_name: t} do
     assert DBKV.open?(t)
-    assert 'tmp/dbkv_test.db' == DBKV.filename(t)
+    assert String.to_charlist("#{tmp_dir}/dbkv_test.db") == DBKV.filename(t)
 
     # Insert
     :ok = DBKV.put(t, :word, "Hi")
@@ -67,16 +64,18 @@ defmodule DBKVTest do
     # Data persistence across restart
     :ok = DBKV.close(t)
     refute DBKV.open?(t)
-    DBKV.open(name: t, data_dir: "tmp")
+    DBKV.open(name: t, data_dir: tmp_dir)
     assert "Elixir" == DBKV.get(t, :lang)
   end
 
+  @tag :tmp_dir
   test "delete_all", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     :ok = DBKV.delete_all(t)
     assert 0 == DBKV.size(t)
   end
 
+  @tag :tmp_dir
   test "increment", %{table_name: t} do
     :ok = DBKV.put_new(t, "count", 0)
 
@@ -85,6 +84,7 @@ defmodule DBKVTest do
     assert 9 == DBKV.increment(t, "count", 7)
   end
 
+  @tag :tmp_dir
   test "decrement", %{table_name: t} do
     :ok = DBKV.put_new(t, "count", 9)
 
@@ -93,26 +93,31 @@ defmodule DBKVTest do
     assert 0 == DBKV.decrement(t, "count", 7)
   end
 
+  @tag :tmp_dir
   test "all/1", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert equal?([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.all(t))
   end
 
+  @tag :tmp_dir
   test "all/2", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert equal?(["0--a", "1--b", "2--c"], DBKV.all(t, fn k, v -> "#{k}--#{v}" end))
   end
 
+  @tag :tmp_dir
   test "keys", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert equal?([0, 1, 2], DBKV.keys(t))
   end
 
+  @tag :tmp_dir
   test "values", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert equal?(["a", "b", "c"], DBKV.values(t))
   end
 
+  @tag :tmp_dir
   test "select_by_match_spec", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
 
@@ -126,6 +131,7 @@ defmodule DBKVTest do
     assert equal?([{3, "d"}], DBKV.select_by_match_spec(t, match_spec, 1))
   end
 
+  @tag :tmp_dir
   test "select_by_key_range", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
     assert equal?([{1, "b"}, {2, "c"}, {3, "d"}], DBKV.select_by_key_range(t, 1, 3))
@@ -148,12 +154,14 @@ defmodule DBKVTest do
     assert equal?([], DBKV.select_by_key_range(t, 10, 20))
   end
 
+  @tag :tmp_dir
   test "select_by_min_key", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
     assert equal?([{2, "c"}, {3, "d"}, {4, "e"}], DBKV.select_by_min_key(t, 2))
     assert equal?([], DBKV.select_by_min_key(t, 10))
   end
 
+  @tag :tmp_dir
   test "select_by_max_key", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
     assert equal?([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.select_by_max_key(t, 2))
@@ -161,6 +169,7 @@ defmodule DBKVTest do
     assert equal?([], DBKV.select_by_max_key(t, -1))
   end
 
+  @tag :tmp_dir
   test "select_by_value_range", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
 
@@ -177,12 +186,14 @@ defmodule DBKVTest do
     assert equal?([], DBKV.select_by_value_range(t, "v", "z"))
   end
 
+  @tag :tmp_dir
   test "select_by_min_value", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
     assert equal?([{2, "c"}, {3, "d"}, {4, "e"}], DBKV.select_by_min_value(t, "c"))
     assert equal?([], DBKV.select_by_min_value(t, "v"))
   end
 
+  @tag :tmp_dir
   test "select_by_max_value", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
     assert equal?([{0, "a"}, {1, "b"}, {2, "c"}], DBKV.select_by_max_value(t, "c"))
@@ -195,6 +206,7 @@ defmodule DBKVTest do
     assert equal?([], DBKV.select_by_max_value(t, "#"))
   end
 
+  @tag :tmp_dir
   test "select_by_value", %{table_name: t} do
     :ok = DBKV.init_table(t, a: 0, b: 1, c: 1, d: 0)
     assert equal?([{:a, 0}, {:d, 0}], DBKV.select_by_value(t, 0))
@@ -202,6 +214,7 @@ defmodule DBKVTest do
     assert equal?([], DBKV.select_by_value(t, 2))
   end
 
+  @tag :tmp_dir
   test "delete_by_match_spec", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
 
@@ -214,6 +227,7 @@ defmodule DBKVTest do
     assert 3 == DBKV.size(t)
   end
 
+  @tag :tmp_dir
   test "delete_by_key_range", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
     assert 3 == DBKV.delete_by_key_range(t, 1, 3)
@@ -229,6 +243,7 @@ defmodule DBKVTest do
     assert 1 == DBKV.delete_by_key_range(t, 0, 2, min_inclusive: false, max_inclusive: false)
   end
 
+  @tag :tmp_dir
   test "delete_by_min_key", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert 2 == DBKV.delete_by_min_key(t, 1)
@@ -238,6 +253,7 @@ defmodule DBKVTest do
     assert 1 == DBKV.delete_by_min_key(t, 1, false)
   end
 
+  @tag :tmp_dir
   test "delete_by_max_key", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert 2 == DBKV.delete_by_max_key(t, 1)
@@ -247,6 +263,7 @@ defmodule DBKVTest do
     assert 1 == DBKV.delete_by_max_key(t, 1, false)
   end
 
+  @tag :tmp_dir
   test "delete_by_value_range", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}, {3, "d"}, {4, "e"}])
     assert 3 == DBKV.delete_by_value_range(t, "b", "d")
@@ -261,6 +278,7 @@ defmodule DBKVTest do
              DBKV.delete_by_value_range(t, "b", "d", min_inclusive: false, max_inclusive: false)
   end
 
+  @tag :tmp_dir
   test "delete_by_min_value", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert 2 == DBKV.delete_by_min_value(t, "b")
@@ -270,6 +288,7 @@ defmodule DBKVTest do
     assert 1 == DBKV.delete_by_min_value(t, "b", false)
   end
 
+  @tag :tmp_dir
   test "delete_by_max_value", %{table_name: t} do
     :ok = DBKV.init_table(t, [{0, "a"}, {1, "b"}, {2, "c"}])
     assert 2 == DBKV.delete_by_max_value(t, "b")
@@ -279,6 +298,7 @@ defmodule DBKVTest do
     assert 1 == DBKV.delete_by_max_value(t, "b", false)
   end
 
+  @tag :tmp_dir
   test "delete_by_value", %{table_name: t} do
     :ok = DBKV.init_table(t, a: 0, b: 1, c: 0)
     assert 2 == DBKV.delete_by_value(t, 0)
@@ -290,6 +310,7 @@ defmodule DBKVTest do
     assert 0 == DBKV.delete_by_value(t, 2)
   end
 
+  @tag :tmp_dir
   test "reduce/3", %{table_name: t} do
     :ok = DBKV.init_table(t, a: 1, b: 3, c: 5)
 
